@@ -44,34 +44,35 @@
 }
 
 :root[data-theme="light"] {
-  color-scheme: light;
-  --bg-base: #DCE9F2;
-  --bg-alt: #EAF2F8;
-  --bg-deep: #B8D5E8;
-  --bg-glow-1: rgba(255, 200, 100, 0.45);
-  --bg-glow-2: rgba(180, 220, 255, 0.5);
-  --card: rgba(255, 255, 255, 0.55);
-  --card-strong: rgba(255, 255, 255, 0.85);
-  --card-feature: rgba(255, 255, 255, 0.95);
-  --border: rgba(31, 35, 53, 0.18);
-  --text: #1A2030;
-  --text-dim: #4A5468;
-  --text-muted: #7B8492;
-  --accent: #E07A1F;
-  --accent-2: #B85A0E;
-  --accent-soft: rgba(224, 122, 31, 0.4);
-  --accent-glow: rgba(224, 122, 31, 0.3);
-  --status-online: #2A9D5A;
-  --hero-shadow: 0 4px 40px rgba(224, 122, 31, 0.25), 0 0 80px rgba(255, 200, 100, 0.4);
-  --btn-cta-bg: #E07A1F;
-  --btn-cta-bg-hover: #F49444;
-  --btn-cta-text: #FFFFFF;
-  --btn-icon-bg: #1A2030;
-  --btn-cta-shadow: 0 8px 32px -4px rgba(224, 122, 31, 0.45), 0 0 0 1px rgba(224, 122, 31, 0.5) inset;
+  /* "Modo dia" — saturated original: navy + verde neon + roxo magenta. */
+  color-scheme: dark;
+  --bg-base: #0B0F22;
+  --bg-alt: #141A38;
+  --bg-deep: #07091A;
+  --bg-glow-1: rgba(95, 191, 255, 0.25);
+  --bg-glow-2: rgba(180, 90, 230, 0.30);
+  --card: rgba(20, 26, 56, 0.4);
+  --card-strong: rgba(20, 26, 56, 0.7);
+  --card-feature: rgba(31, 39, 80, 0.7);
+  --border: rgba(255, 255, 255, 0.10);
+  --text: #FFFFFF;
+  --text-dim: rgba(255, 255, 255, 0.7);
+  --text-muted: rgba(255, 255, 255, 0.5);
+  --accent: #6FE89C;
+  --accent-2: #3FB668;
+  --accent-soft: rgba(111, 232, 156, 0.4);
+  --accent-glow: rgba(111, 232, 156, 0.25);
+  --status-online: #6FE89C;
+  --hero-shadow: 0 4px 60px rgba(95, 191, 255, 0.35), 0 0 120px rgba(180, 90, 230, 0.15);
+  --btn-cta-bg: #6FE89C;
+  --btn-cta-bg-hover: #8AF2B1;
+  --btn-cta-text: #0B0F22;
+  --btn-icon-bg: #0B0F22;
+  --btn-cta-shadow: 0 8px 32px -4px rgba(111, 232, 156, 0.55), 0 0 0 1px rgba(111, 232, 156, 0.4) inset;
   --island-filter: none;
   --island-opacity: 1;
-  --vignette: radial-gradient(ellipse 100% 100% at 50% 50%, transparent 50%, rgba(184, 213, 232, 0.5) 100%);
-  --mist: linear-gradient(180deg, transparent 0%, rgba(220, 233, 242, 0.6) 60%, var(--bg-base) 100%);
+  --vignette: radial-gradient(ellipse 100% 100% at 50% 50%, transparent 50%, rgba(11, 15, 34, 0.5) 100%);
+  --mist: linear-gradient(180deg, transparent 0%, rgba(11, 15, 34, 0.9) 60%, var(--bg-base) 100%);
 }
 
 @layer base {
@@ -164,12 +165,9 @@
   opacity: 1;
 }
 
-/* Stars fade out in light mode (no estrelas de dia) */
+/* Stars permanecem em ambos os temas — saturated também era dark navy estrelado. */
 .starfield {
   transition: opacity 600ms ease;
-}
-:root[data-theme="light"] .starfield {
-  opacity: 0;
 }
 
 /* Toggle button — visible in nav */
