@@ -1,37 +1,8 @@
 ---
 import Block from "./Block.astro";
 
-interface Props {
-  theme: "saturated" | "moody";
-}
-
-const themes = {
-  saturated: {
-    bg: "#0B0F22",
-    card: "rgba(20, 26, 56, 0.4)",
-    border: "rgba(255, 255, 255, 0.08)",
-    borderHover: "rgba(111, 232, 156, 0.4)",
-    accent: "#6FE89C",
-    accent2: "#5EBFFF",
-    text: "#FFFFFF",
-    textDim: "rgba(255, 255, 255, 0.7)",
-    textMuted: "rgba(255, 255, 255, 0.5)",
-  },
-  moody: {
-    bg: "#07090F",
-    card: "rgba(19, 24, 38, 0.4)",
-    border: "#28304A",
-    borderHover: "rgba(232, 185, 92, 0.4)",
-    accent: "#E8B95C",
-    accent2: "#B8D8E8",
-    text: "#F2EBD8",
-    textDim: "#9A8E70",
-    textMuted: "#5C5340",
-  },
-};
-
-const { theme } = Astro.props;
-const t = themes[theme];
+// All colors come from CSS vars defined in base.css (--bg-base, --text, etc).
+// Theme switch happens via [data-theme] on <html>.
 
 const features = [
   {
@@ -70,76 +41,69 @@ const features = [
 <section
   id="sistema"
   class="relative scroll-mt-20 px-6 py-20 md:px-10 md:py-28"
-  style={`background: ${t.bg};`}
+  style="background: var(--bg-base);"
 >
   <div class="mx-auto max-w-6xl">
     <div class="mb-10 flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
       <div>
         <div
           class="mono text-xs font-semibold tracking-[0.25em] uppercase"
-          style={`color: ${t.accent};`}
+          style="color: var(--accent);"
         >
           ▸ o sistema
         </div>
         <h2
           class="display mt-3 text-4xl font-extrabold md:text-5xl"
-          style={`color: ${t.text};`}
+          style="color: var(--text);"
         >
           Decisões que dão pra defender.
         </h2>
       </div>
-      <p class="mono max-w-md text-sm" style={`color: ${t.textDim};`}>
+      <p class="mono max-w-md text-sm" style="color: var(--text-dim);">
         Nomes do jogo, economia justa, backups diários. Decisões que dão pra explicar.
       </p>
     </div>
 
-    <div class="grid gap-px" style={`background: ${t.border};`} class:list={["md:grid-cols-2 lg:grid-cols-3"]}>
-      <div class="contents">
-        {
-          features.map((f) => (
-            <article
-              class="group flex flex-col gap-5 p-7 transition-colors duration-300"
-              style={`background: ${t.bg};`}
-              data-feat-card
-            >
-              <div class="flex items-center justify-between">
-                <div class="shrink-0 transition-transform duration-500 group-hover:-translate-y-1 group-hover:rotate-3">
-                  <Block palette={f.block} size={56} />
-                </div>
-                <span
-                  class="mono text-[0.6rem] font-bold tracking-[0.25em] uppercase"
-                  style={`color: ${t.textMuted};`}
-                >
-                  ✦
-                </span>
+    <div
+      class="grid gap-px md:grid-cols-2 lg:grid-cols-3"
+      style="background: var(--border);"
+    >
+      {
+        features.map((f) => (
+          <article
+            class="group flex flex-col gap-5 p-7"
+            style="background: var(--bg-base);"
+          >
+            <div class="flex items-center justify-between">
+              <div class="shrink-0 transition-transform duration-500 group-hover:-translate-y-1 group-hover:rotate-3">
+                <Block palette={f.block} size={56} />
               </div>
-
-              <h3
-                class="display text-2xl font-extrabold leading-tight"
-                style={`color: ${t.text};`}
+              <span
+                class="mono text-[0.6rem] font-bold tracking-[0.25em] uppercase"
+                style="color: var(--text-muted);"
               >
-                {f.title}
-              </h3>
+                ✦
+              </span>
+            </div>
 
-              <p class="text-sm leading-relaxed" style={`color: ${t.textDim};`}>
-                {f.body}
-              </p>
+            <h3
+              class="display text-2xl font-extrabold leading-tight"
+              style="color: var(--text);"
+            >
+              {f.title}
+            </h3>
 
-              <div
-                class="mt-auto h-px w-10 transition-all duration-500 group-hover:w-full"
-                style={`background: ${t.accent};`}
-              />
-            </article>
-          ))
-        }
-      </div>
+            <p class="text-sm leading-relaxed" style="color: var(--text-dim);">
+              {f.body}
+            </p>
+
+            <div
+              class="mt-auto h-px w-10 transition-all duration-500 group-hover:w-full"
+              style="background: var(--accent);"
+            />
+          </article>
+        ))
+      }
     </div>
   </div>
 </section>
-
-<style define:vars={{ borderHover: themes.saturated.borderHover }}>
-  /* Hover state on cards in the grid — uses theme accent. Tailwind hover doesn't reach inline styles cleanly. */
-  [data-feat-card]:hover {
-    background: color-mix(in srgb, var(--theme-bg, transparent) 100%, white 5%);
-  }
-</style>

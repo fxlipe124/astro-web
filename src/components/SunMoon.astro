@@ -1,0 +1,145 @@
+---
+// Sol (light) e Lua (dark) que se trocam no hero quando o tema muda.
+// Posicionamento absolute herdado da classe .celestial (em base.css).
+// Animação: sol cai e lua sobe (vice-versa) via translateY + opacity.
+
+interface Props {
+  size?: number;
+}
+
+const { size = 120 } = Astro.props;
+const half = size / 2;
+---
+
+<!-- LUA — dourada, com crateras pixel-art -->
+<div
+  class="celestial celestial-moon"
+  style={`width: ${size}px; height: ${size}px;`}
+  aria-hidden="true"
+>
+  <svg
+    viewBox="0 0 16 16"
+    width={size}
+    height={size}
+    shape-rendering="crispEdges"
+    style={`filter: drop-shadow(0 0 ${size * 0.2}px rgba(232, 185, 92, 0.55));`}
+  >
+    <!-- Moon body (16x16 pixel sphere) -->
+    {(() => {
+      const grid = 16;
+      const cx = (grid - 1) / 2;
+      const cy = (grid - 1) / 2;
+      const r = grid / 2 - 0.3;
+      const craters = [
+        { x: -2, y: -3, r: 1.0 },
+        { x: 3, y: -1, r: 0.9 },
+        { x: -1, y: 2, r: 0.7 },
+        { x: 1, y: 4, r: 0.7 },
+        { x: 4, y: 3, r: 0.6 },
+        { x: -4, y: 0, r: 0.5 },
+      ];
+      const cells = [];
+      for (let y = 0; y < grid; y++) {
+        for (let x = 0; x < grid; x++) {
+          const dx = x - cx;
+          const dy = y - cy;
+          const d = Math.sqrt(dx * dx + dy * dy);
+          if (d > r) continue;
+          let isCrater = false;
+          for (const cr of craters) {
+            const cdx = dx - cr.x;
+            const cdy = dy - cr.y;
+            if (Math.sqrt(cdx * cdx + cdy * cdy) < cr.r) {
+              isCrater = true;
+              break;
+            }
+          }
+          const shade = -(dx + 1) / r - (dy + 1) / r + d / r;
+          let color;
+          if (isCrater) color = "#7E5A1A";
+          else if (d > r - 0.5) color = "#7E5A1A";
+          else if (shade < -0.7) color = "#F4D67A";
+          else if (shade < -0.1) color = "#E8B95C";
+          else if (shade < 0.6) color = "#B8862E";
+          else color = "#7E5A1A";
+          cells.push({ x, y, color });
+        }
+      }
+      return cells.map((c) => (
+        <rect x={c.x} y={c.y} width="1" height="1" fill={c.color} />
+      ));
+    })()}
+  </svg>
+</div>
+
+<!-- SOL — radiante com raios -->
+<div
+  class="celestial celestial-sun"
+  style={`width: ${size}px; height: ${size}px;`}
+  aria-hidden="true"
+>
+  <svg
+    viewBox="0 0 100 100"
+    width={size}
+    height={size}
+    style={`filter: drop-shadow(0 0 ${size * 0.2}px rgba(255, 200, 80, 0.7));`}
+  >
+    <!-- Sun rays (8 directions) -->
+    <g stroke="#FFD43B" stroke-width="3" stroke-linecap="round" opacity="0.85">
+      <line x1="50" y1="6" x2="50" y2="18" />
+      <line x1="50" y1="82" x2="50" y2="94" />
+      <line x1="6" y1="50" x2="18" y2="50" />
+      <line x1="82" y1="50" x2="94" y2="50" />
+      <line x1="18" y1="18" x2="26" y2="26" />
+      <line x1="74" y1="74" x2="82" y2="82" />
+      <line x1="82" y1="18" x2="74" y2="26" />
+      <line x1="18" y1="82" x2="26" y2="74" />
+    </g>
+
+    <!-- Sun outer glow ring -->
+    <circle cx="50" cy="50" r="34" fill="#FFE08A" opacity="0.6" />
+
+    <!-- Sun body (pixelated for consistency with moon) -->
+    {(() => {
+      const grid = 16;
+      const cx = (grid - 1) / 2;
+      const cy = (grid - 1) / 2;
+      const r = grid / 2 - 0.3;
+      const cells = [];
+      const scale = 100 / grid;
+      const offset = 22; // center the 16x16 grid in viewBox 100x100 (grid=56 wide, centered)
+      const renderScale = 3.5; // each pixel ~3.5 units in viewBox
+      const startX = (100 - grid * renderScale) / 2;
+      const startY = (100 - grid * renderScale) / 2;
+      for (let y = 0; y < grid; y++) {
+        for (let x = 0; x < grid; x++) {
+          const dx = x - cx;
+          const dy = y - cy;
+          const d = Math.sqrt(dx * dx + dy * dy);
+          if (d > r) continue;
+          const shade = -(dx + 1) / r - (dy + 1) / r + d / r;
+          let color;
+          if (d > r - 0.5) color = "#B85A0E";
+          else if (shade < -0.7) color = "#FFE08A";
+          else if (shade < -0.1) color = "#FFD43B";
+          else if (shade < 0.6) color = "#F4A028";
+          else color = "#D67510";
+          cells.push({
+            x: startX + x * renderScale,
+            y: startY + y * renderScale,
+            color,
+          });
+        }
+      }
+      return cells.map((c) => (
+        <rect
+          x={c.x}
+          y={c.y}
+          width={3.5}
+          height={3.5}
+          fill={c.color}
+        />
+      ));
+    })()}
+  </svg>
+</div>

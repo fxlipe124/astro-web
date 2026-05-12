@@ -4,50 +4,77 @@
   --font-display: "Bricolage Grotesque Variable", ui-sans-serif, system-ui, sans-serif;
   --font-sans: "Manrope Variable", ui-sans-serif, system-ui, sans-serif;
   --font-mono: "JetBrains Mono", ui-monospace, monospace;
+}
 
-  /* shared */
-  --color-emerald-neon: #6FE89C;
-  --color-emerald-mid: #3FB668;
-  --color-cyan-neon: #5EBFFF;
-  --color-magenta-neon: #FF5EB0;
-  --color-amber-neon: #FFB13B;
-  --color-grass-top: #6FA84A;
-  --color-grass-side: #6E5031;
-  --color-grass-deep: #4F381F;
+/* =============================================================
+ *  Theme tokens — dark é o default (noite cósmica / moody).
+ *  Light é "amanhecer cósmico" (cores quentes, sol no canto).
+ *  Toggle via <html data-theme="light"|"dark"> ou prefers-color-scheme.
+ * ============================================================= */
+:root,
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --bg-base: #07090F;
+  --bg-alt: #0F1320;
+  --bg-deep: #04060B;
+  --bg-glow-1: rgba(232, 185, 92, 0.18);
+  --bg-glow-2: rgba(74, 120, 88, 0.15);
+  --card: rgba(19, 24, 38, 0.4);
+  --card-strong: rgba(19, 24, 38, 0.7);
+  --card-feature: rgba(31, 37, 53, 0.7);
+  --border: #28304A;
+  --text: #F2EBD8;
+  --text-dim: #9A8E70;
+  --text-muted: #5C5340;
+  --accent: #E8B95C;
+  --accent-2: #B8862E;
+  --accent-soft: rgba(232, 185, 92, 0.4);
+  --accent-glow: rgba(232, 185, 92, 0.25);
+  --status-online: #6FE89C;
+  --hero-shadow: 0 4px 60px rgba(232, 185, 92, 0.35), 0 0 120px rgba(232, 185, 92, 0.15);
+  --btn-cta-bg: #E8B95C;
+  --btn-cta-bg-hover: #F2DCA0;
+  --btn-cta-text: #07090F;
+  --btn-icon-bg: #07090F;
+  --btn-cta-shadow: 0 0 40px 0 rgba(232, 185, 92, 0.4), 0 0 0 1px rgba(232, 185, 92, 0.5) inset;
+  --island-filter: brightness(0.55);
+  --island-opacity: 0.85;
+  --vignette: radial-gradient(ellipse 100% 100% at 50% 50%, transparent 40%, rgba(7, 9, 15, 0.7) 100%);
+  --mist: linear-gradient(180deg, transparent 0%, rgba(15, 19, 32, 0.9) 60%, var(--bg-base) 100%);
+}
 
-  /* saturated theme — navy + neon */
-  --color-sat-bg: #0B0F22;
-  --color-sat-bg-2: #141A38;
-  --color-sat-bg-3: #1F2750;
-  --color-sat-card: #1A2040;
-  --color-sat-line: #2C3460;
-  --color-sat-text: #FFFFFF;
-  --color-sat-text-2: #9AA3CC;
-  --color-sat-text-3: #5C6592;
-  --color-sat-accent: #6FE89C;
-  --color-sat-accent-2: #5EBFFF;
-  --color-sat-accent-3: #FFB13B;
-
-  /* moody theme — deep navy + warm gold */
-  --color-moody-bg: #07090F;
-  --color-moody-bg-2: #0F1320;
-  --color-moody-bg-3: #1A2030;
-  --color-moody-card: #131826;
-  --color-moody-line: #28304A;
-  --color-moody-text: #F2EBD8;
-  --color-moody-text-2: #9A8E70;
-  --color-moody-text-3: #5C5340;
-  --color-moody-gold: #E8B95C;
-  --color-moody-gold-2: #B8862E;
-  --color-moody-moss: #4A7858;
-  --color-moody-terracotta: #B85742;
+:root[data-theme="light"] {
+  color-scheme: light;
+  --bg-base: #DCE9F2;
+  --bg-alt: #EAF2F8;
+  --bg-deep: #B8D5E8;
+  --bg-glow-1: rgba(255, 200, 100, 0.45);
+  --bg-glow-2: rgba(180, 220, 255, 0.5);
+  --card: rgba(255, 255, 255, 0.55);
+  --card-strong: rgba(255, 255, 255, 0.85);
+  --card-feature: rgba(255, 255, 255, 0.95);
+  --border: rgba(31, 35, 53, 0.18);
+  --text: #1A2030;
+  --text-dim: #4A5468;
+  --text-muted: #7B8492;
+  --accent: #E07A1F;
+  --accent-2: #B85A0E;
+  --accent-soft: rgba(224, 122, 31, 0.4);
+  --accent-glow: rgba(224, 122, 31, 0.3);
+  --status-online: #2A9D5A;
+  --hero-shadow: 0 4px 40px rgba(224, 122, 31, 0.25), 0 0 80px rgba(255, 200, 100, 0.4);
+  --btn-cta-bg: #E07A1F;
+  --btn-cta-bg-hover: #F49444;
+  --btn-cta-text: #FFFFFF;
+  --btn-icon-bg: #1A2030;
+  --btn-cta-shadow: 0 8px 32px -4px rgba(224, 122, 31, 0.45), 0 0 0 1px rgba(224, 122, 31, 0.5) inset;
+  --island-filter: none;
+  --island-opacity: 1;
+  --vignette: radial-gradient(ellipse 100% 100% at 50% 50%, transparent 50%, rgba(184, 213, 232, 0.5) 100%);
+  --mist: linear-gradient(180deg, transparent 0%, rgba(220, 233, 242, 0.6) 60%, var(--bg-base) 100%);
 }
 
 @layer base {
-  :root {
-    color-scheme: dark;
-  }
-
   html {
     scroll-behavior: smooth;
     overflow-x: hidden;
@@ -55,10 +82,22 @@
 
   body {
     font-family: var(--font-sans);
+    background: var(--bg-base);
+    color: var(--text);
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     overflow-x: hidden;
     overflow-x: clip;
+    transition: background-color 600ms cubic-bezier(0.4, 0, 0.2, 1),
+      color 600ms cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  /* Elements that depend on theme tokens also transition. Limit to common
+   * properties to avoid layout thrash. */
+  body * {
+    transition-property: background-color, border-color, color, fill, stroke, opacity, filter, box-shadow;
+    transition-duration: 600ms;
+    transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
   }
 }
 
@@ -81,11 +120,84 @@
   }
 
   .grain-overlay {
-    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='240' height='240'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.92' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 0.4 0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)' opacity='0.7'/></svg>");
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='240' height='240'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.92' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 1  0 0 0 0 1  0 0 0 0.4 0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)' opacity='0.7'/></svg>");
     background-size: 240px 240px;
     background-repeat: repeat;
     mix-blend-mode: overlay;
     opacity: 0.05;
     pointer-events: none;
+  }
+}
+
+/* =============================================================
+ *  Sun/Moon swap — celestial body in the hero swaps with theme.
+ *  Both elements are always present in DOM; CSS controls visibility
+ *  via translateY + opacity so the swap animates (sun falls, moon rises).
+ * ============================================================= */
+.celestial {
+  position: absolute;
+  top: 4%;
+  right: 2%;
+  pointer-events: none;
+  transition: transform 1100ms cubic-bezier(0.34, 1.2, 0.4, 1),
+    opacity 800ms ease;
+  will-change: transform, opacity;
+}
+
+.celestial-moon {
+  /* visible em dark */
+  transform: translateY(0);
+  opacity: 1;
+}
+.celestial-sun {
+  /* escondido em dark (acima da viewport) */
+  transform: translateY(-160%);
+  opacity: 0;
+}
+
+:root[data-theme="light"] .celestial-moon {
+  transform: translateY(-160%);
+  opacity: 0;
+}
+:root[data-theme="light"] .celestial-sun {
+  transform: translateY(0);
+  opacity: 1;
+}
+
+/* Stars fade out in light mode (no estrelas de dia) */
+.starfield {
+  transition: opacity 600ms ease;
+}
+:root[data-theme="light"] .starfield {
+  opacity: 0;
+}
+
+/* Toggle button — visible in nav */
+.theme-toggle .icon-sun,
+.theme-toggle .icon-moon {
+  transition: transform 600ms cubic-bezier(0.34, 1.2, 0.4, 1), opacity 400ms ease;
+}
+.theme-toggle .icon-sun {
+  transform: rotate(0deg);
+  opacity: 0;
+}
+.theme-toggle .icon-moon {
+  transform: rotate(0deg);
+  opacity: 1;
+}
+:root[data-theme="light"] .theme-toggle .icon-sun {
+  opacity: 1;
+}
+:root[data-theme="light"] .theme-toggle .icon-moon {
+  transform: rotate(180deg);
+  opacity: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  body,
+  body *,
+  .celestial,
+  .starfield {
+    transition-duration: 0.01ms !important;
   }
 }
