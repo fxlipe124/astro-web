@@ -1,0 +1,326 @@
+---
+// Voxel SkyBlock island — canonical Noobcrew-style layout.
+// Coords: x (right), z (back), y (down). y=0 is grass-top; y>0 is below.
+// Tree is oak-shaped (4 trunk + 5x5+5x5+3x3+topper foliage), chest visible,
+// ice+lava blocks present for cobblestone-generator iconography.
+
+interface Props {
+  size?: number;
+  variant?: "classic-l" | "classic-compact" | "mini" | "sand-island";
+  palette?: "grass" | "moss";
+  class?: string;
+}
+
+const { size = 80, variant = "classic-l", palette = "grass", class: className = "" } = Astro.props;
+
+type Cube = { x: number; y: number; z: number; pal: string };
+
+// === Tree builders (DRY) ====================================================
+
+// Vanilla oak small variant: 5x5 with corners cut for the 2 lower foliage
+// layers, then 3x3 with corners cut, then a single topper. Trunk occupies
+// (cx, ?, cz) so leaves around trunk skip that cell when needed.
+function leaf5x5(cx: number, cy: number, cz: number, skipCenter: boolean): Cube[] {
+  const out: Cube[] = [];
+  for (let dx = -2; dx <= 2; dx++) {
+    for (let dz = -2; dz <= 2; dz++) {
+      const isCorner = Math.abs(dx) === 2 && Math.abs(dz) === 2;
+      const isCenter = dx === 0 && dz === 0;
+      if (isCorner) continue;
+      if (skipCenter && isCenter) continue;
+      out.push({ x: cx + dx, y: cy, z: cz + dz, pal: "leaves" });
+    }
+  }
+  return out;
+}
+
+function leaf3x3(cx: number, cy: number, cz: number, skipCenter: boolean): Cube[] {
+  const out: Cube[] = [];
+  for (let dx = -1; dx <= 1; dx++) {
+    for (let dz = -1; dz <= 1; dz++) {
+      const isCorner = Math.abs(dx) === 1 && Math.abs(dz) === 1;
+      const isCenter = dx === 0 && dz === 0;
+      if (isCorner) continue;
+      if (skipCenter && isCenter) continue;
+      out.push({ x: cx + dx, y: cy, z: cz + dz, pal: "leaves" });
+    }
+  }
+  return out;
+}
+
+function oakTree(cx: number, baseY: number, cz: number, height: number): Cube[] {
+  const cubes: Cube[] = [];
+  for (let i = 1; i <= height; i++) cubes.push({ x: cx, y: baseY - i, z: cz, pal: "wood" });
+  const top = baseY - height;
+  cubes.push(...leaf5x5(cx, top + 1, cz, true));
+  cubes.push(...leaf5x5(cx, top, cz, true));
+  cubes.push(...leaf3x3(cx, top - 1, cz, false));
+  cubes.push({ x: cx, y: top - 2, z: cz, pal: "leaves" });
+  return cubes;
+}
+
+function smallOak(cx: number, baseY: number, cz: number, height: number): Cube[] {
+  // 3x3 leaves around trunk top — for compact islands.
+  const cubes: Cube[] = [];
+  for (let i = 1; i <= height; i++) cubes.push({ x: cx, y: baseY - i, z: cz, pal: "wood" });
+  const top = baseY - height;
+  cubes.push(...leaf3x3(cx, top + 1, cz, true));
+  cubes.push(...leaf3x3(cx, top, cz, true));
+  cubes.push({ x: cx, y: top - 1, z: cz, pal: "leaves" });
+  return cubes;
+}
+
+function tinyShrub(cx: number, baseY: number, cz: number): Cube[] {
+  // 2-tall trunk + 4 leaves cross + 1 topper.
+  return [
+    { x: cx, y: baseY - 1, z: cz, pal: "wood" },
+    { x: cx, y: baseY - 2, z: cz, pal: "wood" },
+    { x: cx - 1, y: baseY - 2, z: cz, pal: "leaves" },
+    { x: cx + 1, y: baseY - 2, z: cz, pal: "leaves" },
+    { x: cx, y: baseY - 2, z: cz - 1, pal: "leaves" },
+    { x: cx, y: baseY - 2, z: cz + 1, pal: "leaves" },
+    { x: cx, y: baseY - 3, z: cz, pal: "leaves" },
+  ];
+}
+
+// === Variants ===============================================================
+
+function buildClassicL(): Cube[] {
+  // Top L-shape footprint (z grows back, x grows right):
+  //   (0,0,0) (1,0,0) (2,0,0)     <- horizontal arm of L
+  //   (0,0,1)
+  //   (0,0,2)                     <- vertical arm of L
+  //
+  // Tree planted on the corner of the L at (0,0,0): trunk sticks straight up,
+  // foliage occupies leaves around. Chest sits on the far end of the
+  // horizontal arm at (2,0,0). Ice between, lava as separate "spilled" block.
+  const cubes: Cube[] = [];
+
+  // y=0 top layer (5 cells)
+  cubes.push({ x: 0, y: 0, z: 0, pal: "grass" }); // base under tree
+  cubes.push({ x: 1, y: 0, z: 0, pal: "ice" });
+  cubes.push({ x: 2, y: 0, z: 0, pal: "chest" });
+  cubes.push({ x: 0, y: 0, z: 1, pal: "grass" });
+  cubes.push({ x: 0, y: 0, z: 2, pal: "grass" });
+
+  // y=1 dirt (5 cells)
+  for (const [x, z] of [[0, 0], [1, 0], [2, 0], [0, 1], [0, 2]]) {
+    cubes.push({ x, y: 1, z, pal: "dirt" });
+  }
+  // y=2 dirt-deep (5 cells)
+  for (const [x, z] of [[0, 0], [1, 0], [2, 0], [0, 1], [0, 2]]) {
+    cubes.push({ x, y: 2, z, pal: "dirt-deep" });
+  }
+
+  // Oak tree at (0,0,0)
+  cubes.push(...oakTree(0, 0, 0, 4));
+
+  // Lava block — floating to the side of the L (substitute for the bucket).
+  cubes.push({ x: 3, y: 0, z: 0, pal: "lava" });
+
+  return cubes;
+}
+
+function buildClassicCompact(): Cube[] {
+  // 2x2 footprint + 3-tall tree + chest in the corner.
+  const cubes: Cube[] = [];
+
+  cubes.push({ x: 0, y: 0, z: 0, pal: "grass" }); // tree base
+  cubes.push({ x: 1, y: 0, z: 0, pal: "chest" });
+  cubes.push({ x: 0, y: 0, z: 1, pal: "grass" });
+  cubes.push({ x: 1, y: 0, z: 1, pal: "grass" });
+
+  for (const [x, z] of [[0, 0], [1, 0], [0, 1], [1, 1]]) {
+    cubes.push({ x, y: 1, z, pal: "dirt" });
+  }
+  for (const [x, z] of [[0, 0], [1, 0], [0, 1], [1, 1]]) {
+    cubes.push({ x, y: 2, z, pal: "dirt-deep" });
+  }
+
+  cubes.push(...smallOak(0, 0, 0, 3));
+
+  return cubes;
+}
+
+function buildMini(): Cube[] {
+  // Single grass cell + dirt + tiny shrub.
+  return [
+    { x: 0, y: 0, z: 0, pal: "grass" },
+    { x: 0, y: 1, z: 0, pal: "dirt" },
+    { x: 0, y: 2, z: 0, pal: "dirt-deep" },
+    ...tinyShrub(0, 0, 0),
+  ];
+}
+
+function buildSandIsland(): Cube[] {
+  // 2x2 sand + 3-tall cactus on one corner. Separate Noobcrew-style island.
+  const cubes: Cube[] = [];
+
+  for (const [x, z] of [[0, 0], [1, 0], [0, 1], [1, 1]]) {
+    cubes.push({ x, y: 0, z, pal: "sand" });
+  }
+  for (const [x, z] of [[0, 0], [1, 0], [0, 1], [1, 1]]) {
+    cubes.push({ x, y: 1, z, pal: "sand-mid" });
+  }
+  // Cactus 3-tall at (1, 0)
+  cubes.push({ x: 1, y: -1, z: 0, pal: "cactus" });
+  cubes.push({ x: 1, y: -2, z: 0, pal: "cactus" });
+  cubes.push({ x: 1, y: -3, z: 0, pal: "cactus" });
+
+  return cubes;
+}
+
+const builders = {
+  "classic-l": buildClassicL,
+  "classic-compact": buildClassicCompact,
+  "mini": buildMini,
+  "sand-island": buildSandIsland,
+};
+
+const cubes = builders[variant]();
+
+// === Palettes ===============================================================
+
+const grassPalettes: Record<string, { top: string; left: string; right: string }> = {
+  grass: { top: "#7BB04A", left: "#7A552F", right: "#553A1F" },
+  moss: { top: "#5C8C46", left: "#3F6B30", right: "#284A1D" },
+};
+
+const palettesAll: Record<string, { top: string; left: string; right: string }> = {
+  grass: grassPalettes[palette],
+  dirt: { top: "#8C5A2C", left: "#73471F", right: "#4F2F12" },
+  "dirt-deep": { top: "#5F3D1A", left: "#3F2611", right: "#2A1808" },
+  wood: { top: "#C7944C", left: "#7A4B23", right: "#4A2D14" },
+  leaves: { top: "#4FB04A", left: "#358035", right: "#1F4F1F" },
+  chest: { top: "#A77236", left: "#7B5223", right: "#4F3414" },
+  ice: { top: "#D6EEF7", left: "#9ECEDD", right: "#5F9AB2" },
+  lava: { top: "#FF8830", left: "#E04A14", right: "#7A1F08" },
+  sand: { top: "#F2D78A", left: "#C9AC5E", right: "#8C7740" },
+  "sand-mid": { top: "#D9BF6A", left: "#A8923C", right: "#6E5C25" },
+  cactus: { top: "#5C8B33", left: "#3F6B22", right: "#284A14" },
+};
+
+// === Isometric projection ===================================================
+
+const cubeSize = 24;
+const cubeW = cubeSize;
+const cubeH = cubeSize * 1.16;
+const halfW = cubeW / 2;
+const topH = cubeSize * 0.58;
+
+function project(c: Cube) {
+  const px = (c.x - c.z) * halfW;
+  const py = (c.x + c.z) * (topH / 2) - c.y * cubeSize;
+  return { px, py };
+}
+
+const projected = cubes.map((c) => ({ c, ...project(c) }));
+
+const minX = Math.min(...projected.map((p) => p.px));
+const maxX = Math.max(...projected.map((p) => p.px + cubeW));
+const minY = Math.min(...projected.map((p) => p.py));
+const maxY = Math.max(...projected.map((p) => p.py + cubeH));
+
+const padding = 2;
+const vbW = maxX - minX + padding * 2;
+const vbH = maxY - minY + padding * 2;
+const offX = -minX + padding;
+const offY = -minY + padding;
+
+// Depth-sort: back/upper cubes first, front/lower cubes last.
+// A cube is "in front" when x + z is larger, or (same x+z) when y is more positive.
+projected.sort((a, b) => {
+  const sa = a.c.x + a.c.z + a.c.y * 0.001 - a.c.y * 0;
+  const sb = b.c.x + b.c.z + b.c.y * 0.001 - b.c.y * 0;
+  // Primary: x + z (further back first)
+  const dxz = (a.c.x + a.c.z) - (b.c.x + b.c.z);
+  if (dxz !== 0) return dxz;
+  // Tiebreak: higher (more negative y) goes BEHIND lower (positive y).
+  // Y axis: lower y = higher in screen. Cubes higher up in space (smaller y)
+  // are typically obscured by cubes in front of them; but since same x+z
+  // means they're stacked, lower y wins last (drawn after = on top).
+  return b.c.y - a.c.y;
+});
+
+function hasChestDetail(pal: string) {
+  return pal === "chest";
+}
+---
+
+<svg
+  viewBox={`0 0 ${vbW} ${vbH}`}
+  width={size}
+  height={size * (vbH / vbW)}
+  shape-rendering="geometricPrecision"
+  class:list={["island-mini", className]}
+  aria-hidden="true"
+>
+  {
+    projected.map(({ c, px, py }) => {
+      const p = palettesAll[c.pal];
+      const x0 = offX + px;
+      const y0 = offY + py;
+      const isChest = hasChestDetail(c.pal);
+      const isGlowy = c.pal === "lava";
+      return (
+        <g transform={`translate(${x0}, ${y0})`}>
+          {/* top */}
+          <polygon
+            points={`${halfW},0 ${cubeW},${topH / 2} ${halfW},${topH} 0,${topH / 2}`}
+            fill={p.top}
+          />
+          {/* left */}
+          <polygon
+            points={`0,${topH / 2} ${halfW},${topH} ${halfW},${cubeH} 0,${cubeH - topH / 2}`}
+            fill={p.left}
+          />
+          {/* right */}
+          <polygon
+            points={`${halfW},${topH} ${cubeW},${topH / 2} ${cubeW},${cubeH - topH / 2} ${halfW},${cubeH}`}
+            fill={p.right}
+          />
+          {/* edge sheen on top */}
+          <polygon
+            points={`${halfW},0 ${cubeW},${topH / 2} ${halfW},${topH} 0,${topH / 2}`}
+            fill="none"
+            stroke="rgba(255,255,255,0.18)"
+            stroke-width="0.4"
+          />
+          {/* outer outline */}
+          <polygon
+            points={`${halfW},0 ${cubeW},${topH / 2} ${cubeW},${cubeH - topH / 2} ${halfW},${cubeH} 0,${cubeH - topH / 2} 0,${topH / 2}`}
+            fill="none"
+            stroke="rgba(0,0,0,0.4)"
+            stroke-width="0.35"
+          />
+          {/* lava glow on top */}
+          {isGlowy && (
+            <polygon
+              points={`${halfW},0 ${cubeW},${topH / 2} ${halfW},${topH} 0,${topH / 2}`}
+              fill="rgba(255, 200, 80, 0.5)"
+            />
+          )}
+          {/* chest detail */}
+          {isChest && (
+            <g>
+              <rect
+                x={halfW + 5}
+                y={topH + (cubeH - topH) / 2 - 3}
+                width="3"
+                height="5"
+                fill="#3F2812"
+              />
+              <rect
+                x={halfW + 6}
+                y={topH + (cubeH - topH) / 2 - 1}
+                width="1"
+                height="2"
+                fill="#E8C77A"
+              />
+            </g>
+          )}
+        </g>
+      );
+    })
+  }
+</svg>

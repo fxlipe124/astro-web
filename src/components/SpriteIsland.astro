@@ -1,0 +1,217 @@
+---
+// Static pixel-art SkyBlock islands. Side-view 2D — recognizable as Minecraft
+// in a half-second glance. Each variant is a hardcoded string grid; pixels
+// render as <rect width="1" height="1">.
+//
+// Character legend:
+//   .  transparent
+//   L  leaf light       l  leaf mid        o  leaf dark
+//   W  wood dark        w  wood mid        b  wood light
+//   G  grass light      g  grass mid       e  grass edge dark
+//   M  dirt medium      m  dirt dark       D  dirt light
+//   C  chest dark       c  chest light     K  chest gold lock
+//   I  ice light        i  ice mid         j  ice dark
+//   A  lava core        a  lava bright     r  lava deep
+//   S  sand light       s  sand dark
+//   X  cactus mid       x  cactus dark     p  cactus prick (point)
+//   #  stone dark       =  stone mid
+
+interface Props {
+  variant: "mini" | "compact" | "classic-l" | "sand";
+  size?: number;
+  class?: string;
+}
+
+const { variant, size = 120, class: className = "" } = Astro.props;
+
+const palette: Record<string, string> = {
+  L: "#7BBF3D",
+  l: "#5C9F2A",
+  o: "#3E7218",
+  W: "#3E2810",
+  w: "#5C3F1E",
+  b: "#7A552F",
+  G: "#7CBD6B",
+  g: "#5B9D44",
+  e: "#3E6B23",
+  M: "#8C5A2C",
+  m: "#5C3A18",
+  D: "#A87248",
+  C: "#6F4520",
+  c: "#9A6533",
+  K: "#E8C040",
+  I: "#C8E4F0",
+  i: "#8FB8C8",
+  j: "#5A8AA0",
+  A: "#FF6020",
+  a: "#FFB13B",
+  r: "#A82800",
+  S: "#E6D58A",
+  s: "#B89E54",
+  X: "#5C8B33",
+  x: "#3F6B22",
+  p: "#2A4A12",
+  "#": "#666666",
+  "=": "#8A8A8A",
+};
+
+// =========================================================================
+// MINI — 18 wide × 18 tall. Single grass + small tree.
+// =========================================================================
+const mini = [
+  "..................",
+  "........LL........",
+  ".......LolL.......",
+  "......LooollL.....",
+  ".....LoolloolL....",
+  "......Lloollol....",
+  ".......LoolL......",
+  "........bL........",
+  "........W.........",
+  "........W.........",
+  "....GGGGGGGGG.....",
+  "....egMmMMmge.....",
+  "....mMmMMmMm......",
+  ".....mMmMMm.......",
+  "......mMmM........",
+  ".......MmM........",
+  "........M.........",
+  "..................",
+];
+
+// =========================================================================
+// COMPACT — 26 wide × 26 tall. 2-cell-wide top + medium tree.
+// =========================================================================
+const compact = [
+  "..........................",
+  "..............LL..........",
+  "............LLolLL........",
+  "...........LooooolLL......",
+  "..........LoolloollooL....",
+  "..........LoolllooolloL...",
+  "..........LooooolLLoolL...",
+  "...........LLoollLooLL....",
+  "............LLolLLLL......",
+  "..............WL..........",
+  "..............W...........",
+  "..............W...........",
+  "..............W...........",
+  ".......GGGGGGGGGGGGG......",
+  ".......egMmMmMMmMmMge.....",
+  ".......MmMMmMMmMmMmM......",
+  "........mMmMMmMmMMmm......",
+  ".........MmMMmMmMMm.......",
+  "..........mMmMmMmM........",
+  "...........MmMmMm.........",
+  "............mMmM..........",
+  ".............Mm...........",
+  "..............M...........",
+  "..........................",
+  "..........................",
+  "..........................",
+];
+
+// =========================================================================
+// CLASSIC-L — 44 wide × 36 tall. Big island with tree + chest + ice + lava
+// blocks visible on the grass. Side-view (so the L-shape becomes a wider
+// platform with three "items" on top — chest, ice, lava — and tree off-center).
+// =========================================================================
+const classicL = [
+  "............................................",
+  "...................LL.......................",
+  ".................LLolLL.....................",
+  "................LooolllL....................",
+  "...............LoolllooLL...................",
+  "..............LoolllooollL..................",
+  "..............LooLloolllolL.................",
+  ".............LoolloooollooL.................",
+  "..............LoolllooollLL.................",
+  "...............LooLLooollL..................",
+  "................LLLLoolLL...................",
+  "..................LWL.......................",
+  "..................WwW.......................",
+  "..................WwW.......................",
+  "..................WwW.......................",
+  "..................WwW.......................",
+  "......IiIij...CcCcCcK..GGGGGGGGG..rArAaArr...",
+  "......IiIjj...CcCKKcc..egMmMmMMmge.AaAarAa...",
+  "......IijjJ...CcCcCcC..MmMMmMMmMm..rAarArAr..",
+  "......jjJJj...CCCCCCCC..mMmMmMMmm..rArArAr...",
+  "....MmMMmMMmMmMMmMmMmMMmMmMMmMmMmMMmMmMm....",
+  "....mMmMMmMmMMmMmMmMMmMmMMmMmMmMMmMmMmMm....",
+  ".....mMmMmMmMmMmMmMmMmMmMmMmMmMmMmMmMm......",
+  "......MmMmMmMmMmMmMmMmMmMmMmMmMmMmMmM.......",
+  ".......mMmMmMmMmMmMmMmMmMmMmMmMmMmm.........",
+  "........MmMmMmMmMmMmMmMmMmMmMmMmM...........",
+  ".........mMmMmMmMmMmMmMmMmMmMmm.............",
+  "..........MmMmMmMmMmMmMmMmMmM...............",
+  "...........mMmMmMmMmMmMmMmm.................",
+  "............MmMmMmMmMmMmM...................",
+  ".............mMmMmMmMmm.....................",
+  "..............MmMmMmM.......................",
+  "...............mMmm.........................",
+  "................M...........................",
+  "............................................",
+  "............................................",
+];
+
+// =========================================================================
+// SAND — 20 wide × 26 tall. Sand island with cactus.
+// =========================================================================
+const sand = [
+  "....................",
+  "........p...........",
+  ".......pXp..........",
+  ".......XXX..........",
+  ".......pXp..........",
+  ".......XXX..........",
+  ".......pXp..........",
+  ".......XXX..........",
+  ".......pXp..........",
+  ".......XXX..........",
+  "...SSSSXSSSSSS......",
+  "...SssSXSssSsS......",
+  "...sSSSsSSsSsS......",
+  "....sSsSsSsSs.......",
+  ".....SsSsSsSS.......",
+  "......sSsSsS........",
+  ".......SsSs.........",
+  "........sS..........",
+  ".........s..........",
+  "....................",
+  "....................",
+  "....................",
+  "....................",
+  "....................",
+  "....................",
+  "....................",
+];
+
+const variants = { mini, compact, "classic-l": classicL, sand };
+const grid = variants[variant];
+
+const cols = Math.max(...grid.map((r) => r.length));
+const rows = grid.length;
+
+// flatten to pixels
+const pixels: { x: number; y: number; c: string }[] = [];
+for (let y = 0; y < rows; y++) {
+  const row = grid[y];
+  for (let x = 0; x < row.length; x++) {
+    const ch = row[x];
+    if (ch === "." || !palette[ch]) continue;
+    pixels.push({ x, y, c: palette[ch] });
+  }
+}
+---
+
+<svg
+  viewBox={`0 0 ${cols} ${rows}`}
+  width={size}
+  height={size * (rows / cols)}
+  shape-rendering="crispEdges"
+  class:list={["sprite-island", className]}
+  aria-hidden="true"
+>
+  {pixels.map((p) => <rect x={p.x} y={p.y} width="1" height="1" fill={p.c} />)}
+</svg>

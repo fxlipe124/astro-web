@@ -1,0 +1,59 @@
+---
+interface Props {
+  palette?: string;
+  size?: number;
+  class?: string;
+}
+
+const palettes: Record<
+  string,
+  { skin: string; shadow: string; hair: string; eye: string; mouth: string }
+> = {
+  steve: { skin: "#C68642", shadow: "#8B5A2B", hair: "#3A2113", eye: "#9BA3B8", mouth: "#704A2A" },
+  alex: { skin: "#E0AC69", shadow: "#A8784B", hair: "#C26A1E", eye: "#5C7C3A", mouth: "#8B5E33" },
+  pale: { skin: "#F2D6B3", shadow: "#C9A77D", hair: "#1F1A14", eye: "#4A6B8C", mouth: "#996644" },
+  dark: { skin: "#6B4321", shadow: "#3F2614", hair: "#1A0F08", eye: "#7A8194", mouth: "#3F2614" },
+  amber: { skin: "#D89B6C", shadow: "#9C6A40", hair: "#5C2A1F", eye: "#8B6533", mouth: "#7A4A2A" },
+  green: { skin: "#A0BB6A", shadow: "#6E834A", hair: "#2D3A1E", eye: "#1F2912", mouth: "#566B3A" },
+};
+
+const { palette = "steve", size = 48, class: className = "" } = Astro.props;
+const p = palettes[palette] ?? palettes.steve;
+
+// 8x8 face grid
+const grid = [
+  "hhhhhhhh",
+  "hhhhhhhh",
+  "hssssssh",
+  "sesseses",
+  "ssssssss",
+  "ssSmmmSs",
+  "sSSSSSSs",
+  "ssssssss",
+];
+
+const colorFor = (ch: string) =>
+  ch === "h" ? p.hair :
+  ch === "s" ? p.skin :
+  ch === "S" ? p.shadow :
+  ch === "e" ? p.eye :
+  ch === "m" ? p.mouth : null;
+---
+
+<svg
+  viewBox="0 0 8 8"
+  width={size}
+  height={size}
+  shape-rendering="crispEdges"
+  class:list={["player-head", className]}
+  aria-hidden="true"
+>
+  {
+    grid.map((row, y) =>
+      row.split("").map((ch, x) => {
+        const c = colorFor(ch);
+        return c ? <rect x={x} y={y} width="1" height="1" fill={c} /> : null;
+      })
+    )
+  }
+</svg>

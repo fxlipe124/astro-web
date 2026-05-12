@@ -1,0 +1,222 @@
+---
+// Voxel-style planet — pixelated circle with crater detail and optional ring.
+// Renders as a pixelated sphere using rect grid (pixel art) for that Minecraft feel,
+// not a vector circle.
+
+interface Props {
+  size?: number;
+  palette?:
+    | "alien-green"
+    | "ocean-blue"
+    | "saturn"
+    | "mars"
+    | "ice"
+    | "ember"
+    | "void";
+  ring?: boolean;
+  glow?: string;
+  class?: string;
+  style?: string;
+}
+
+const palettes = {
+  "alien-green": {
+    light: "#8BFFB6",
+    mid: "#3FB668",
+    dark: "#22884A",
+    deep: "#155932",
+    crater: "#0E3D24",
+    ring: "#6FE89C",
+  },
+  "ocean-blue": {
+    light: "#9BD8FF",
+    mid: "#5EBFFF",
+    dark: "#3070C2",
+    deep: "#1E4080",
+    crater: "#142F62",
+    ring: "#5EBFFF",
+  },
+  saturn: {
+    light: "#F4D67A",
+    mid: "#E8B95C",
+    dark: "#B8862E",
+    deep: "#7E5A1A",
+    crater: "#4F3810",
+    ring: "#E8B95C",
+  },
+  mars: {
+    light: "#FF9D6E",
+    mid: "#E66B3A",
+    dark: "#A8421F",
+    deep: "#5C2210",
+    crater: "#3F1408",
+    ring: "#FF9D6E",
+  },
+  ice: {
+    light: "#F0F8FF",
+    mid: "#B8D8E8",
+    dark: "#7AA0B8",
+    deep: "#476078",
+    crater: "#2E3F4F",
+    ring: "#B8D8E8",
+  },
+  ember: {
+    light: "#FFE69D",
+    mid: "#FFB13B",
+    dark: "#D67510",
+    deep: "#7A4108",
+    crater: "#4A2604",
+    ring: "#FFB13B",
+  },
+  void: {
+    light: "#9876C8",
+    mid: "#6B3FB0",
+    dark: "#3F2078",
+    deep: "#1F0F40",
+    crater: "#0A0420",
+    ring: "#B380E8",
+  },
+};
+
+const {
+  size = 240,
+  palette = "alien-green",
+  ring = false,
+  glow,
+  class: className = "",
+  style = "",
+} = Astro.props;
+
+const p = palettes[palette];
+
+// 16x16 pixel grid sphere — generates a circle by checking distance from center.
+// Each pixel gets shaded based on position (light/mid/dark/deep) with crater dots.
+const grid = 16;
+const cx = (grid - 1) / 2;
+const cy = (grid - 1) / 2;
+const radius = grid / 2 - 0.3;
+
+// crater positions (relative to center, in grid units)
+const craters = [
+  { x: -2, y: -3, r: 1.0 },
+  { x: 3, y: -1, r: 0.9 },
+  { x: -1, y: 2, r: 0.7 },
+  { x: 1, y: 4, r: 0.7 },
+  { x: 4, y: 3, r: 0.6 },
+  { x: -4, y: 0, r: 0.5 },
+];
+
+type Pixel = { x: number; y: number; color: string };
+const pixels: Pixel[] = [];
+
+for (let y = 0; y < grid; y++) {
+  for (let x = 0; x < grid; x++) {
+    const dx = x - cx;
+    const dy = y - cy;
+    const d = Math.sqrt(dx * dx + dy * dy);
+    if (d > radius) continue;
+
+    // light source from upper-left: dx negative, dy negative = brighter
+    const lightDX = (dx + 1) / radius;
+    const lightDY = (dy + 1) / radius;
+    const shade = -lightDX - lightDY + d / radius; // higher = darker
+
+    // crater check
+    let isCrater = false;
+    for (const cr of craters) {
+      const cdx = dx - cr.x;
+      const cdy = dy - cr.y;
+      if (Math.sqrt(cdx * cdx + cdy * cdy) < cr.r) {
+        isCrater = true;
+        break;
+      }
+    }
+
+    let color: string;
+    if (isCrater) {
+      color = p.crater;
+    } else if (d > radius - 0.5) {
+      color = p.deep;
+    } else if (shade < -0.7) {
+      color = p.light;
+    } else if (shade < -0.1) {
+      color = p.mid;
+    } else if (shade < 0.6) {
+      color = p.dark;
+    } else {
+      color = p.deep;
+    }
+
+    pixels.push({ x, y, color });
+  }
+}
+
+const vbW = ring ? grid * 1.6 : grid;
+const vbH = grid;
+const offsetX = ring ? (vbW - grid) / 2 : 0;
+const ringColor = p.ring;
+---
+
+<div
+  class:list={["planet", className]}
+  style={`width: ${size}px; height: ${size * (vbH / vbW)}px; ${glow ? `filter: drop-shadow(0 0 ${size * 0.15}px ${glow});` : ""} ${style}`}
+  aria-hidden="true"
+>
+  <svg
+    viewBox={`0 0 ${vbW} ${vbH}`}
+    width="100%"
+    height="100%"
+    shape-rendering="crispEdges"
+  >
+    {/* back ring half (drawn first so planet covers it) */}
+    {
+      ring && (
+        <ellipse
+          cx={offsetX + grid / 2}
+          cy={grid / 2 + 0.5}
+          rx={grid * 0.78}
+          ry={grid * 0.18}
+          fill="none"
+          stroke={ringColor}
+          stroke-width="0.6"
+          opacity="0.6"
+        />
+      )
+    }
+
+    {/* planet body */}
+    {
+      pixels.map((px) => (
+        <rect
+          x={offsetX + px.x}
+          y={px.y}
+          width="1"
+          height="1"
+          fill={px.color}
+        />
+      ))
+    }
+
+    {/* front ring half */}
+    {
+      ring && (
+        <>
+          <path
+            d={`M ${offsetX - 1.6} ${grid / 2 + 0.5} A ${grid * 0.78} ${grid * 0.18} 0 0 0 ${offsetX + grid / 2 - radius * 0.7} ${grid / 2 + 1.5}`}
+            fill="none"
+            stroke={ringColor}
+            stroke-width="0.7"
+            opacity="0.85"
+          />
+          <path
+            d={`M ${offsetX + grid / 2 + radius * 0.7} ${grid / 2 + 1.5} A ${grid * 0.78} ${grid * 0.18} 0 0 0 ${offsetX + grid + 1.6} ${grid / 2 + 0.5}`}
+            fill="none"
+            stroke={ringColor}
+            stroke-width="0.7"
+            opacity="0.85"
+          />
+        </>
+      )
+    }
+  </svg>
+</div>

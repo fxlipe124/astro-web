@@ -1,0 +1,391 @@
+---
+import Base from "../layouts/Base.astro";
+import Block from "../components/Block.astro";
+import SpriteIsland from "../components/SpriteIsland.astro";
+import PlayerHead from "../components/PlayerHead.astro";
+import Starfield from "../components/Starfield.astro";
+import Planet from "../components/Planet.astro";
+import Features from "../components/Features.astro";
+import Shop from "../components/Shop.astro";
+import Faq from "../components/Faq.astro";
+
+// floating SkyBlock islands — positioned in zones free of planets + UI elements
+const islands = [
+  { variant: "classic-l", size: 200, style: "bottom: 2%; left: 0%;" },
+  { variant: "compact", size: 130, style: "bottom: 2%; right: 0%;" },
+  { variant: "sand", size: 90, style: "top: 50%; right: 1%;" },
+  { variant: "mini", size: 80, style: "top: 35%; left: 1%;" },
+  { variant: "mini", size: 70, style: "top: 82%; left: 50%;" },
+];
+
+const ports = [
+  {
+    n: "1",
+    title: "Java original",
+    block: "grass" as const,
+    desc: "Conta Mojang/Microsoft. Versões 1.7 → 1.21.x via ViaVersion.",
+    steps: [
+      "Multiplayer · Adicionar Servidor",
+      "Cole o endereço Java",
+      "Entre",
+    ],
+  },
+  {
+    n: "2",
+    title: "Java pirata",
+    block: "wood" as const,
+    desc: "Sem conta Mojang. LibreLogin protege sua sessão com senha.",
+    steps: [
+      "Mesmo endereço Java",
+      "Na primeira entrada: /register <senha> <senha>",
+      "Nas próximas: /login <senha>",
+    ],
+  },
+  {
+    n: "3",
+    title: "Bedrock",
+    block: "bedrock" as const,
+    desc: "Mobile, Switch, Xbox, PlayStation via Geyser + Floodgate.",
+    steps: [
+      "Servidores · Adicionar",
+      "Cole o endereço Bedrock",
+      "Auth automática — sem senha",
+    ],
+  },
+];
+
+const community = ["steve", "alex", "pale", "dark", "amber", "green"];
+
+// Base path pro nav (GitHub Pages serve em /astro/)
+const base = import.meta.env.BASE_URL || "/";
+---
+
+<Base title="Astro · SkyBlock crossplay" themeColor="#0B0F22">
+  <div class="relative min-h-screen text-white antialiased" style="background: #0B0F22; font-family: var(--font-sans);">
+    {/* ===== HERO ===== */}
+    <section class="relative isolate overflow-hidden">
+      {/* layered background */}
+      <div
+        class="pointer-events-none absolute inset-0 -z-10"
+        style="background:
+          radial-gradient(ellipse 70% 50% at 20% 0%, rgba(95, 191, 255, 0.25), transparent 60%),
+          radial-gradient(ellipse 80% 60% at 80% 100%, rgba(180, 90, 230, 0.30), transparent 65%),
+          radial-gradient(ellipse 60% 40% at 50% 50%, rgba(111, 232, 156, 0.10), transparent 70%),
+          linear-gradient(180deg, #0B0F22 0%, #141A38 50%, #0B0F22 100%);"
+      ></div>
+
+      {/* deep space starfield */}
+      <Starfield count={220} palette="saturated" seed={11} class="-z-10" />
+
+      {/* iso grid floor */}
+      <svg
+        class="pointer-events-none absolute inset-0 -z-10 h-full w-full opacity-[0.06]"
+        viewBox="0 0 1600 900"
+        preserveAspectRatio="xMidYMax slice"
+        aria-hidden="true"
+      >
+        <defs>
+          <pattern id="iso" width="80" height="46" patternUnits="userSpaceOnUse" patternTransform="translate(0 0)">
+            <path d="M 0 23 L 40 0 L 80 23 L 40 46 Z" fill="none" stroke="#6FE89C" stroke-width="0.4"/>
+          </pattern>
+        </defs>
+        <rect x="0" y="500" width="1600" height="400" fill="url(#iso)" />
+      </svg>
+
+      {/* big alien planet — top-right (desktop only) */}
+      <div class="pointer-events-none absolute -z-10 hidden md:block" style="top: 6%; right: -6%; transform: rotate(-12deg);">
+        <Planet size={420} palette="alien-green" ring glow="rgba(111, 232, 156, 0.45)" />
+      </div>
+
+      {/* small distant planet — left (desktop only) */}
+      <div class="pointer-events-none absolute -z-10 hidden md:block" style="top: 18%; left: 4%;">
+        <Planet size={120} palette="ocean-blue" glow="rgba(94, 191, 255, 0.4)" />
+      </div>
+
+      {/* tiny voidstone moon (desktop only) */}
+      <div class="pointer-events-none absolute -z-10 hidden md:block" style="top: 60%; right: 18%;">
+        <Planet size={70} palette="void" glow="rgba(179, 128, 232, 0.5)" />
+      </div>
+
+      {/* compact mobile planet — top-right corner */}
+      <div class="pointer-events-none absolute -z-10 md:hidden" style="top: 5%; right: -10%;">
+        <Planet size={180} palette="alien-green" ring glow="rgba(111, 232, 156, 0.4)" />
+      </div>
+
+      {/* floating islands (desktop only — mobile keeps clean) */}
+      <div class="pointer-events-none absolute inset-0 z-20 hidden md:block">
+        {
+          islands.map((isl) => (
+            <div class="absolute" style={isl.style}>
+              <SpriteIsland variant={isl.variant as any} size={isl.size} />
+            </div>
+          ))
+        }
+      </div>
+
+      {/* nav */}
+      <header class="relative z-10">
+        <div class="mx-auto flex max-w-7xl items-center justify-between px-6 py-5 md:px-10">
+          <a href={base} class="flex items-center gap-2.5">
+            <span class="inline-block h-3 w-3 bg-[#6FE89C]" style="box-shadow: 0 0 10px #6FE89C;"></span>
+            <span class="display text-xl font-bold tracking-tight">astro</span>
+          </a>
+          <nav class="hidden items-center gap-8 mono text-[0.7rem] font-medium tracking-[0.15em] text-white/70 uppercase md:flex">
+            <a href="#conectar" class="transition-colors hover:text-white">Conectar</a>
+            <a href="#sistema" class="transition-colors hover:text-white">Sistema</a>
+            <a href="#loja" class="transition-colors hover:text-white">Loja</a>
+            <a href="#faq" class="transition-colors hover:text-white">FAQ</a>
+          </nav>
+        </div>
+      </header>
+
+      {/* hero content */}
+      <div class="relative z-10 mx-auto max-w-5xl px-6 pt-12 pb-32 text-center md:pt-16 md:pb-44">
+        {/* status badge — no fake numbers */}
+        <div class="inline-flex items-center gap-3 border border-[#6FE89C]/30 bg-[#6FE89C]/10 px-4 py-1.5 backdrop-blur-sm">
+          <span class="relative flex h-2 w-2">
+            <span class="absolute inline-flex h-full w-full animate-ping rounded-full bg-[#6FE89C] opacity-75"></span>
+            <span class="relative inline-flex h-2 w-2 rounded-full bg-[#6FE89C]"></span>
+          </span>
+          <span class="mono text-[0.7rem] font-semibold tracking-[0.2em] text-[#6FE89C] uppercase">
+            servidor online
+          </span>
+        </div>
+
+        {/* mega title */}
+        <h1
+          class="display-tight mt-8 text-[clamp(5rem,18vw,12rem)] font-extrabold uppercase"
+          style="background: linear-gradient(180deg, #FFFFFF 0%, #C7CEF0 70%, #6FE89C 100%); -webkit-background-clip: text; background-clip: text; color: transparent;"
+        >
+          Astro
+        </h1>
+
+        <p class="mono mt-4 text-sm font-medium tracking-[0.25em] text-white/60 uppercase md:text-base">
+          skyblock cósmico · crossplay BR
+        </p>
+        <p class="mt-3 text-sm text-white/50 md:text-base">
+          Sua ilha. Entre planetas. Java, pirata e Bedrock no mesmo orbital.
+        </p>
+
+        {/* unified IP CTA — single element, no duplication */}
+        <button
+          type="button"
+          data-copy-hero
+          class="group mx-auto mt-12 flex w-full max-w-md items-stretch overflow-hidden bg-[#6FE89C] text-[#0B0F22] transition-all hover:scale-[1.02] hover:bg-[#8AF2B1]"
+          style="box-shadow: 0 8px 32px -4px rgba(111, 232, 156, 0.5), 0 0 0 1px rgba(111, 232, 156, 0.45) inset;"
+        >
+          <span class="flex items-center justify-center bg-[#0B0F22] px-5">
+            <svg class="h-5 w-5 text-[#6FE89C]" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
+              <path d="M3 2 L13 8 L3 14 Z" />
+            </svg>
+          </span>
+          <span class="flex flex-1 flex-col items-start justify-center px-5 py-3 text-left">
+            <span class="mono text-[0.55rem] font-semibold tracking-[0.25em] uppercase opacity-70" data-copy-hero-label>
+              clique para copiar
+            </span>
+            <span class="mono text-lg font-bold md:text-xl" data-copy-hero-text>
+              play.astro.gg
+            </span>
+          </span>
+          <span class="flex items-center justify-center px-5 mono text-xs font-bold tracking-[0.2em] uppercase">
+            <svg class="h-4 w-4" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+              <rect x="4.5" y="4.5" width="8" height="8" rx="1" />
+              <path d="M3 11 L3 3 L11 3" />
+            </svg>
+          </span>
+        </button>
+
+        {/* community heads + version (no fake counts) */}
+        <div class="mt-12 flex flex-col items-center justify-center gap-5 md:flex-row md:gap-10">
+          <div class="flex items-center gap-3">
+            <div class="flex -space-x-2">
+              {
+                community.map((p, i) => (
+                  <div class="ring-2 ring-[#0B0F22] transition-transform hover:-translate-y-1" style={`z-index: ${community.length - i};`}>
+                    <PlayerHead palette={p} size={28} />
+                  </div>
+                ))
+              }
+            </div>
+            <span class="mono text-[0.65rem] tracking-[0.2em] text-white/50 uppercase">
+              comunidade ativa
+            </span>
+          </div>
+
+          <span class="hidden h-3 w-px bg-white/15 md:block"></span>
+
+          <div class="mono text-[0.65rem] tracking-[0.2em] text-white/50 uppercase">
+            <span class="text-white/80">1.21.x</span> · via 1.7+
+          </div>
+        </div>
+      </div>
+
+      {/* bottom fade */}
+      <div class="pointer-events-none absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-b from-transparent to-[#0B0F22]"></div>
+    </section>
+
+    {/* ===== CONNECT ===== */}
+    <section id="conectar" class="relative scroll-mt-20 px-6 py-20 md:px-10 md:py-28" style="background: #0B0F22;">
+      <div class="mx-auto max-w-6xl">
+        <div class="mb-10 flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
+          <div>
+            <div class="mono text-xs font-semibold tracking-[0.25em] text-[#6FE89C] uppercase">
+              ▸ como conectar
+            </div>
+            <h2 class="display mt-3 text-4xl font-extrabold text-white md:text-5xl">
+              Mesmo IP. Três jeitos.
+            </h2>
+          </div>
+          <p class="mono max-w-md text-sm text-white/60">
+            O servidor identifica sua plataforma e ajusta o login automaticamente.
+          </p>
+        </div>
+
+        {/* shared IP rail — Java port + Bedrock port */}
+        <div class="mb-8 grid gap-3 md:grid-cols-2">
+          <button
+            type="button"
+            data-copy-rail
+            data-addr="play.astro.gg"
+            class="group flex items-stretch overflow-hidden border border-white/10 bg-[#141A38]/70 backdrop-blur-sm transition-colors hover:border-[#6FE89C]/50"
+          >
+            <span class="flex items-center justify-center bg-[#1F2750] px-4 mono text-[0.6rem] font-bold tracking-[0.2em] text-[#6FE89C] uppercase">
+              Java
+            </span>
+            <span class="flex flex-1 items-center justify-between px-5 py-3 text-left">
+              <span class="mono text-base font-bold text-white md:text-lg">play.astro.gg</span>
+              <span class="mono text-[0.65rem] tracking-[0.2em] text-white/50 uppercase">porta 25565</span>
+            </span>
+            <span class="flex items-center justify-center border-l border-white/10 px-4 mono text-[0.7rem] font-bold tracking-[0.2em] text-white/70 uppercase transition-colors group-hover:bg-[#6FE89C] group-hover:text-[#0B0F22]" data-copy-rail-label>
+              copiar
+            </span>
+          </button>
+
+          <button
+            type="button"
+            data-copy-rail
+            data-addr="play.astro.gg"
+            data-port="19132"
+            class="group flex items-stretch overflow-hidden border border-white/10 bg-[#141A38]/70 backdrop-blur-sm transition-colors hover:border-[#6FE89C]/50"
+          >
+            <span class="flex items-center justify-center bg-[#1F2750] px-4 mono text-[0.6rem] font-bold tracking-[0.2em] text-[#5EBFFF] uppercase">
+              Bedrock
+            </span>
+            <span class="flex flex-1 items-center justify-between px-5 py-3 text-left">
+              <span class="mono text-base font-bold text-white md:text-lg">play.astro.gg</span>
+              <span class="mono text-[0.65rem] tracking-[0.2em] text-white/50 uppercase">porta 19132</span>
+            </span>
+            <span class="flex items-center justify-center border-l border-white/10 px-4 mono text-[0.7rem] font-bold tracking-[0.2em] text-white/70 uppercase transition-colors group-hover:bg-[#5EBFFF] group-hover:text-[#0B0F22]" data-copy-rail-label>
+              copiar
+            </span>
+          </button>
+        </div>
+
+        {/* instructions — no IPs, just steps per platform */}
+        <div class="grid gap-5 md:grid-cols-3">
+          {
+            ports.map((p) => (
+              <article
+                class="group relative flex flex-col gap-5 border border-white/10 bg-[#141A38]/40 p-6 backdrop-blur-sm transition-colors hover:border-[#6FE89C]/30"
+              >
+                <header class="flex items-center justify-between">
+                  <span class="mono text-xs font-bold tracking-[0.25em] text-white/40">
+                    passo 0{p.n}
+                  </span>
+                </header>
+
+                <div class="flex items-center gap-4">
+                  <div class="shrink-0 transition-transform duration-500 group-hover:-translate-y-1 group-hover:rotate-3">
+                    <Block palette={p.block} size={56} />
+                  </div>
+                  <h3 class="display text-2xl font-extrabold text-white">
+                    {p.title}
+                  </h3>
+                </div>
+
+                <p class="text-sm leading-relaxed text-white/70">{p.desc}</p>
+
+                <ol class="mono space-y-2 border-t border-white/10 pt-4 text-[0.75rem] text-white/70">
+                  {p.steps.map((s, i) => (
+                    <li class="flex items-start gap-3">
+                      <span class="mt-0.5 inline-flex h-4 w-4 shrink-0 items-center justify-center bg-white/10 text-[0.55rem] font-bold text-white/80">
+                        {i + 1}
+                      </span>
+                      <span>{s}</span>
+                    </li>
+                  ))}
+                </ol>
+              </article>
+            ))
+          }
+        </div>
+      </div>
+    </section>
+
+    {/* ===== SISTEMA ===== */}
+    <Features theme="saturated" />
+
+    {/* ===== LOJA ===== */}
+    <Shop theme="saturated" />
+
+    {/* ===== FAQ ===== */}
+    <Faq theme="saturated" />
+
+    {/* ===== FOOTER ===== */}
+    <footer class="border-t border-white/5 bg-[#07091A] px-6 py-10 md:px-10">
+      <div class="mx-auto flex max-w-7xl flex-col items-center justify-between gap-3 md:flex-row">
+        <div class="display flex items-center gap-2 text-lg font-bold">
+          <span class="inline-block h-2.5 w-2.5 bg-[#6FE89C]"></span>
+          <span>astro</span>
+        </div>
+        <div class="mono text-[0.65rem] tracking-[0.2em] text-white/40 uppercase">
+          Servidor brasileiro · não afiliado à Mojang ou Microsoft
+        </div>
+      </div>
+    </footer>
+
+    {/* grain */}
+    <div class="grain-overlay fixed inset-0 -z-0"></div>
+  </div>
+
+  <script>
+    function setup() {
+      document.querySelectorAll<HTMLButtonElement>("[data-copy-hero]").forEach((btn) => {
+        if (btn.dataset.bound === "1") return;
+        btn.dataset.bound = "1";
+        btn.addEventListener("click", async () => {
+          const label = btn.querySelector<HTMLElement>("[data-copy-hero-label]");
+          try {
+            await navigator.clipboard.writeText("play.astro.gg");
+            if (label) {
+              const prev = label.textContent;
+              label.textContent = "copiado ✓";
+              setTimeout(() => { if (label) label.textContent = prev; }, 1800);
+            }
+          } catch (e) {}
+        });
+      });
+
+      document.querySelectorAll<HTMLButtonElement>("[data-copy-rail]").forEach((btn) => {
+        if (btn.dataset.bound === "1") return;
+        btn.dataset.bound = "1";
+        btn.addEventListener("click", async () => {
+          const label = btn.querySelector<HTMLElement>("[data-copy-rail-label]");
+          const addr = btn.dataset.addr ?? "play.astro.gg";
+          const port = btn.dataset.port;
+          const text = port ? `${addr}:${port}` : addr;
+          try {
+            await navigator.clipboard.writeText(text);
+            if (label) {
+              const prev = label.textContent;
+              label.textContent = "copiado ✓";
+              setTimeout(() => { if (label) label.textContent = prev; }, 1500);
+            }
+          } catch (e) {}
+        });
+      });
+    }
+    setup();
+    document.addEventListener("astro:page-load", setup);
+  </script>
+</Base>

@@ -1,0 +1,92 @@
+---
+// Starfield with twinkling stars. Generated at build time.
+
+interface Props {
+  count?: number;
+  palette?: "saturated" | "moody";
+  seed?: number;
+  class?: string;
+}
+
+const { count = 200, palette = "saturated", seed = 7, class: className = "" } = Astro.props;
+
+const palettes = {
+  saturated: ["#FFFFFF", "#FFFFFF", "#FFFFFF", "#6FE89C", "#5EBFFF", "#FF8FD6", "#FFB13B"],
+  moody: ["#F2EBD8", "#F2EBD8", "#F2EBD8", "#E8B95C", "#B8862E", "#8AA89A", "#F2EBD8"],
+};
+
+const colors = palettes[palette];
+
+function rand(s: number) {
+  let v = s;
+  return () => {
+    v = (v * 9301 + 49297) % 233280;
+    return v / 233280;
+  };
+}
+
+const r = rand(seed);
+const stars = Array.from({ length: count }, () => {
+  const t = r();
+  const isBright = t > 0.92;
+  return {
+    x: r() * 100,
+    y: r() * 100,
+    size: 0.5 + (isBright ? r() * 2.5 : r() * 1.2),
+    color: colors[Math.floor(r() * colors.length)],
+    delay: r() * 6,
+    duration: 2.5 + r() * 5,
+    minOpacity: 0.1 + r() * 0.15,
+    maxOpacity: isBright ? 0.95 : 0.4 + r() * 0.4,
+    bright: isBright,
+  };
+});
+---
+
+<div
+  class:list={["starfield pointer-events-none absolute inset-0 overflow-hidden", className]}
+  aria-hidden="true"
+>
+  {
+    stars.map((s) => (
+      <span
+        class="star-twinkle absolute rounded-full"
+        style={`
+          left: ${s.x}%;
+          top: ${s.y}%;
+          width: ${s.size}px;
+          height: ${s.size}px;
+          background-color: ${s.color};
+          ${s.bright ? `box-shadow: 0 0 ${s.size * 4}px ${s.color}aa, 0 0 ${s.size * 8}px ${s.color}55;` : ""}
+          --tw-d: ${s.duration}s;
+          --tw-min: ${s.minOpacity};
+          --tw-max: ${s.maxOpacity};
+          animation-delay: -${s.delay}s;
+        `}
+      />
+    ))
+  }
+</div>
+
+<style>
+  .star-twinkle {
+    animation: twinkle var(--tw-d, 4s) ease-in-out infinite;
+    will-change: opacity, transform;
+  }
+  @keyframes twinkle {
+    0%, 100% {
+      opacity: var(--tw-min, 0.2);
+      transform: scale(1);
+    }
+    50% {
+      opacity: var(--tw-max, 1);
+      transform: scale(1.3);
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .star-twinkle {
+      animation: none;
+      opacity: var(--tw-max, 0.7);
+    }
+  }
+</style>

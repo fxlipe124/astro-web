@@ -1,0 +1,145 @@
+---
+interface Props {
+  theme: "saturated" | "moody";
+}
+
+const themes = {
+  saturated: {
+    bg: "#0B0F22",
+    border: "rgba(255, 255, 255, 0.10)",
+    accent: "#6FE89C",
+    text: "#FFFFFF",
+    textDim: "rgba(255, 255, 255, 0.7)",
+    textMuted: "rgba(255, 255, 255, 0.5)",
+    qBg: "rgba(20, 26, 56, 0.4)",
+    qBgHover: "rgba(20, 26, 56, 0.7)",
+  },
+  moody: {
+    bg: "#07090F",
+    border: "#28304A",
+    accent: "#E8B95C",
+    text: "#F2EBD8",
+    textDim: "#9A8E70",
+    textMuted: "#5C5340",
+    qBg: "rgba(19, 24, 38, 0.4)",
+    qBgHover: "rgba(19, 24, 38, 0.7)",
+  },
+};
+
+const { theme } = Astro.props;
+const t = themes[theme];
+
+const items = [
+  {
+    q: "Posso jogar de Java pirata?",
+    a: "Pode, sem firula. Mesmo IP, mesma porta. Na primeira entrada o LibreLogin pede /register <senha> <senha>; nas próximas, /login <senha>. Sua senha é independente da senha de qualquer outro servidor.",
+  },
+  {
+    q: "Como entro pelo Bedrock (celular, console)?",
+    a: "Vá em Servidores → Adicionar Servidor. Endereço play.astro.gg, porta 19132 (UDP). O Geyser/Floodgate cuida do resto — sua skin e seu nome são preservados pelo SkinsRestorer.",
+  },
+  {
+    q: "Quais versões de Java são suportadas?",
+    a: "Da 1.7 até a mais recente. ViaVersion + ViaBackwards + ViaRewind cobrem o intervalo. Recomendamos 1.21.x para a melhor experiência, mas seu cliente velho de 1.8 também conecta.",
+  },
+  {
+    q: "Tem keep inventory?",
+    a: "Na sua ilha, sim. Em arenas PvP e eventos especiais, não. Pra constar.",
+  },
+  {
+    q: "Como começo?",
+    a: "Ao entrar, você cai no lobby com instruções. /is create gera sua ilha. As primeiras missões te guiam pelos sistemas — comece por elas e depois saia explorando.",
+  },
+  {
+    q: "Posso jogar com amigos numa mesma ilha?",
+    a: "Sim. /is invite <jogador> abre vaga de coop. Limite atual: 4 jogadores por ilha. Membros compartilham construção, baú e progresso de missões.",
+  },
+  {
+    q: "Os itens e missões usam nomes em português?",
+    a: "Os itens mantêm o nome vanilla (igual no inventário do cliente). As descrições e textos de missão são em português. Decisão consciente — facilita busca por receitas e wikis.",
+  },
+  {
+    q: "Tem Discord?",
+    a: "Sim. Anúncios, suporte, reports e a comunidade do servidor moram lá. Link no rodapé desta página.",
+  },
+];
+---
+
+<section
+  id="faq"
+  class="relative scroll-mt-20 px-6 py-20 md:px-10 md:py-28"
+  style={`background: ${t.bg};`}
+>
+  <div class="mx-auto max-w-4xl">
+    <div class="mb-10">
+      <div
+        class="mono text-xs font-semibold tracking-[0.25em] uppercase"
+        style={`color: ${t.accent};`}
+      >
+        ▸ perguntas frequentes
+      </div>
+      <h2
+        class="display mt-3 text-4xl font-extrabold md:text-5xl"
+        style={`color: ${t.text};`}
+      >
+        Antes de perguntar.
+      </h2>
+      <p class="mono mt-4 max-w-md text-sm" style={`color: ${t.textDim};`}>
+        As respostas mais frequentes do Discord, condensadas. Se a sua não estiver aqui — abra ticket lá.
+      </p>
+    </div>
+
+    <div class="space-y-3">
+      {
+        items.map((it, i) => (
+          <details
+            class="faq-item group overflow-hidden border transition-colors"
+            style={`background: ${t.qBg}; border-color: ${t.border};`}
+          >
+            <summary
+              class="flex cursor-pointer items-start justify-between gap-4 px-5 py-4 list-none transition-colors hover:bg-[var(--hover)]"
+              style={`--hover: ${t.qBgHover};`}
+            >
+              <div class="flex items-baseline gap-4">
+                <span
+                  class="mono text-[0.65rem] font-bold tracking-[0.25em] uppercase shrink-0"
+                  style={`color: ${t.accent};`}
+                >
+                  {(i + 1).toString().padStart(2, "0")}
+                </span>
+                <h3
+                  class="display text-base font-bold leading-snug md:text-lg"
+                  style={`color: ${t.text};`}
+                >
+                  {it.q}
+                </h3>
+              </div>
+              <span
+                class="faq-icon mt-1 inline-flex h-6 w-6 shrink-0 items-center justify-center font-bold leading-none transition-transform duration-300"
+                style={`color: ${t.accent}; font-size: 18px;`}
+                aria-hidden="true"
+              >
+                +
+              </span>
+            </summary>
+            <div
+              class="border-t px-5 pt-3 pb-5 pl-14 text-sm leading-relaxed"
+              style={`border-color: ${t.border}; color: ${t.textDim};`}
+            >
+              {it.a}
+            </div>
+          </details>
+        ))
+      }
+    </div>
+  </div>
+</section>
+
+<style>
+  details summary::-webkit-details-marker {
+    display: none;
+  }
+  details[open] .faq-icon {
+    transform: rotate(45deg);
+  }
+</style>

@@ -1,0 +1,80 @@
+---
+interface Props {
+  palette?:
+    | "grass"
+    | "dirt"
+    | "stone"
+    | "diamond"
+    | "emerald"
+    | "gold"
+    | "obsidian"
+    | "lapis"
+    | "redstone"
+    | "endstone"
+    | "amethyst"
+    | "moss"
+    | "deepslate"
+    | "wood"
+    | "bedrock";
+  size?: number;
+  class?: string;
+}
+
+const palettes: Record<string, { top: string; left: string; right: string }> = {
+  grass: { top: "#7BB04A", left: "#7A552F", right: "#553A1F" },
+  dirt: { top: "#8C5A2C", left: "#73471F", right: "#4F2F12" },
+  stone: { top: "#A0A0A0", left: "#7A7A7A", right: "#525252" },
+  diamond: { top: "#7CECE0", left: "#42B0A8", right: "#256E68" },
+  emerald: { top: "#3FB668", left: "#22884A", right: "#155932" },
+  gold: { top: "#F4D67A", left: "#C29A3D", right: "#7E6320" },
+  obsidian: { top: "#3D2A57", left: "#28173D", right: "#150A22" },
+  lapis: { top: "#3D6BC9", left: "#244B96", right: "#142F62" },
+  redstone: { top: "#E64545", left: "#A82A2A", right: "#5C1414" },
+  endstone: { top: "#E8E0BA", left: "#B8AE85", right: "#857C57" },
+  amethyst: { top: "#B380E8", left: "#7B4FB8", right: "#4B2A78" },
+  moss: { top: "#5C8C46", left: "#3F6B30", right: "#284A1D" },
+  deepslate: { top: "#4A4F58", left: "#33363E", right: "#1F2026" },
+  wood: { top: "#C7944C", left: "#7A4B23", right: "#4A2D14" },
+  bedrock: { top: "#5C5C66", left: "#3F3F47", right: "#26262C" },
+};
+
+const { palette = "grass", size = 60, class: className = "" } = Astro.props;
+const p = palettes[palette];
+const w = size;
+const topH = size * 0.58;
+const h = size * 1.16;
+---
+
+<svg
+  viewBox={`0 0 ${w} ${h}`}
+  width={w}
+  height={h}
+  class:list={["block-voxel", className]}
+  shape-rendering="geometricPrecision"
+  aria-hidden="true"
+>
+  <polygon
+    points={`${w / 2},0 ${w},${topH / 2} ${w / 2},${topH} 0,${topH / 2}`}
+    fill={p.top}
+  />
+  <polygon
+    points={`0,${topH / 2} ${w / 2},${topH} ${w / 2},${h} 0,${h - topH / 2}`}
+    fill={p.left}
+  />
+  <polygon
+    points={`${w / 2},${topH} ${w},${topH / 2} ${w},${h - topH / 2} ${w / 2},${h}`}
+    fill={p.right}
+  />
+  <polygon
+    points={`${w / 2},0 ${w},${topH / 2} ${w / 2},${topH} 0,${topH / 2}`}
+    fill="none"
+    stroke="rgba(255,255,255,0.18)"
+    stroke-width={Math.max(0.5, w / 100)}
+  />
+  <polygon
+    points={`${w / 2},0 ${w},${topH / 2} ${w},${h - topH / 2} ${w / 2},${h} 0,${h - topH / 2} 0,${topH / 2}`}
+    fill="none"
+    stroke="rgba(0,0,0,0.35)"
+    stroke-width={Math.max(0.5, w / 120)}
+  />
+</svg>

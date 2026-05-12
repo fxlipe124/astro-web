@@ -1,0 +1,91 @@
+@import "tailwindcss";
+
+@theme {
+  --font-display: "Bricolage Grotesque Variable", ui-sans-serif, system-ui, sans-serif;
+  --font-sans: "Manrope Variable", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, monospace;
+
+  /* shared */
+  --color-emerald-neon: #6FE89C;
+  --color-emerald-mid: #3FB668;
+  --color-cyan-neon: #5EBFFF;
+  --color-magenta-neon: #FF5EB0;
+  --color-amber-neon: #FFB13B;
+  --color-grass-top: #6FA84A;
+  --color-grass-side: #6E5031;
+  --color-grass-deep: #4F381F;
+
+  /* saturated theme — navy + neon */
+  --color-sat-bg: #0B0F22;
+  --color-sat-bg-2: #141A38;
+  --color-sat-bg-3: #1F2750;
+  --color-sat-card: #1A2040;
+  --color-sat-line: #2C3460;
+  --color-sat-text: #FFFFFF;
+  --color-sat-text-2: #9AA3CC;
+  --color-sat-text-3: #5C6592;
+  --color-sat-accent: #6FE89C;
+  --color-sat-accent-2: #5EBFFF;
+  --color-sat-accent-3: #FFB13B;
+
+  /* moody theme — deep navy + warm gold */
+  --color-moody-bg: #07090F;
+  --color-moody-bg-2: #0F1320;
+  --color-moody-bg-3: #1A2030;
+  --color-moody-card: #131826;
+  --color-moody-line: #28304A;
+  --color-moody-text: #F2EBD8;
+  --color-moody-text-2: #9A8E70;
+  --color-moody-text-3: #5C5340;
+  --color-moody-gold: #E8B95C;
+  --color-moody-gold-2: #B8862E;
+  --color-moody-moss: #4A7858;
+  --color-moody-terracotta: #B85742;
+}
+
+@layer base {
+  :root {
+    color-scheme: dark;
+  }
+
+  html {
+    scroll-behavior: smooth;
+    overflow-x: hidden;
+  }
+
+  body {
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    overflow-x: hidden;
+    overflow-x: clip;
+  }
+}
+
+@layer components {
+  .display {
+    font-family: var(--font-display);
+    font-feature-settings: "ss01";
+    line-height: 0.95;
+    letter-spacing: -0.025em;
+  }
+
+  .display-tight {
+    font-family: var(--font-display);
+    line-height: 0.88;
+    letter-spacing: -0.04em;
+  }
+
+  .mono {
+    font-family: var(--font-mono);
+  }
+
+  .grain-overlay {
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='240' height='240'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.92' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 0.4 0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)' opacity='0.7'/></svg>");
+    background-size: 240px 240px;
+    background-repeat: repeat;
+    mix-blend-mode: overlay;
+    opacity: 0.05;
+    pointer-events: none;
+  }
+}
