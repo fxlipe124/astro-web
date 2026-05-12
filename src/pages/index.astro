@@ -57,14 +57,27 @@ const base = import.meta.env.BASE_URL || "/";
   <div class="relative min-h-screen antialiased" style="font-family: var(--font-sans);">
     {/* ===== HERO ===== */}
     <section class="relative isolate overflow-hidden">
-      {/* atmosfera de fundo */}
+      {/* atmosfera de fundo — vars por tema (saturated: 3 radials + linear; moody: 2 radials + linear) */}
       <div
         class="pointer-events-none absolute inset-0 -z-20"
-        style="background:
-          radial-gradient(ellipse 60% 40% at 80% 20%, var(--bg-glow-1), transparent 65%),
-          radial-gradient(ellipse 70% 50% at 30% 80%, var(--bg-glow-2), transparent 70%),
-          linear-gradient(180deg, var(--bg-base) 0%, var(--bg-alt) 60%, var(--bg-base) 100%);"
+        style="background: var(--hero-bg);"
       ></div>
+
+      {/* iso grid floor — visível só no modo dia (saturated) */}
+      <svg
+        class="pointer-events-none absolute inset-0 -z-10 h-full w-full"
+        style="opacity: var(--iso-grid-opacity);"
+        viewBox="0 0 1600 900"
+        preserveAspectRatio="xMidYMax slice"
+        aria-hidden="true"
+      >
+        <defs>
+          <pattern id="iso-floor" width="80" height="46" patternUnits="userSpaceOnUse">
+            <path d="M 0 23 L 40 0 L 80 23 L 40 46 Z" fill="none" stroke="#6FE89C" stroke-width="0.4" />
+          </pattern>
+        </defs>
+        <rect x="0" y="500" width="1600" height="400" fill="url(#iso-floor)" />
+      </svg>
 
       <Starfield count={180} palette="moody" seed={23} class="-z-10" />
 
@@ -194,7 +207,7 @@ const base = import.meta.env.BASE_URL || "/";
 
         <h1
           class="display-tight mt-10 text-[clamp(5rem,18vw,12rem)] font-extrabold uppercase"
-          style="color: var(--text); text-shadow: var(--hero-shadow);"
+          style="background: var(--title-bg); -webkit-background-clip: text; background-clip: text; color: var(--title-color); text-shadow: var(--title-shadow);"
         >
           Astro
         </h1>
@@ -208,7 +221,7 @@ const base = import.meta.env.BASE_URL || "/";
 
         <div
           class="mx-auto mt-8 h-px w-24"
-          style="background: linear-gradient(to right, transparent, var(--accent-soft), transparent);"
+          style="background: linear-gradient(to right, transparent, var(--accent-soft), transparent); opacity: var(--divider-opacity);"
         ></div>
 
         <p
