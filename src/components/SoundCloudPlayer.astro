@@ -279,17 +279,27 @@ const widgetParams = "auto_play=false&hide_related=true&show_comments=false&show
     return ta.value;
   }
 
-  // Monta o label "artista — título · status". publisher_metadata.artist
-  // é o canonical (vem populado pra tracks oficiais — Alan Walker, Skrillex,
-  // etc.). Quando o title já contém o artista (ex: "KDrew - Circles"),
-  // evita duplicar. user.username é evitado como fallback porque é
-  // tipicamente o label/uploader (Monstercat, Big Beat Records), não o
-  // artista real.
+  // Monta o label "artista — título · status".
+  // Prioridade pro artista:
+  //   1. publisher_metadata.artist — canonical, vem populado em tracks
+  //      oficiais (Alan Walker, Skrillex, etc.).
+  //   2. user.username — fallback APENAS quando o título não segue o padrão
+  //      "Artist - Title" (heurística: tem ' - '). Pra titles curtos sem
+  //      dash (ex: "4U"), o uploader é a única pista. Pra titles com dash,
+  //      o artista já tá embutido no título e fallback ia poluir (ex:
+  //      uploader 'Larauder' não deveria ser prependado em 'KDrew - Circles').
+  // Em qualquer caso, se o title já contém o nome (normalizado), pula a
+  // duplicação.
   function buildLabel(sound: any, status: "pausado" | "tocando"): string {
     const titleRaw = sound?.title?.toString().trim();
     if (!titleRaw) return `trilha sonora · ${status}`;
     const title = decodeEntities(titleRaw).toLowerCase();
-    const artistRaw = sound?.publisher_metadata?.artist?.toString().trim();
+    const canonicalArtist = sound?.publisher_metadata?.artist?.toString().trim();
+    const titleHasArtistDash = / - /.test(titleRaw);
+    const fallbackArtist = !titleHasArtistDash
+      ? sound?.user?.username?.toString().trim()
+      : null;
+    const artistRaw = canonicalArtist || fallbackArtist;
     if (!artistRaw) return `${title} · ${status}`;
     const artist = decodeEntities(artistRaw).toLowerCase();
     // Normaliza só pra comparação (display preserva original): strip
