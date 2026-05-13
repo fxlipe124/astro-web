@@ -233,6 +233,10 @@ const widgetParams = "auto_play=false&hide_related=true&show_comments=false&show
 
   let widget: SCWidget | null = null;
   let isPaused = true;
+  // Debounce do botão next — clicks dentro de 500ms são ignorados.
+  // Cobre double-click acidental + caso o handler tenha sido bound 2x
+  // (ex: DOMContentLoaded + astro:page-load disparando tryInit).
+  let lastNextAt = 0;
 
   function setLabel(text: string) {
     const el = document.querySelector<HTMLElement>("[data-sc-label]");
@@ -378,11 +382,16 @@ const widgetParams = "auto_play=false&hide_related=true&show_comments=false&show
       toggle.addEventListener("click", () => widget?.toggle());
     }
 
-    // Bind next button
+    // Bind next button (com debounce)
     const nextBtn = document.querySelector<HTMLButtonElement>("[data-sc-next]");
     if (nextBtn && nextBtn.dataset.bound !== "1") {
       nextBtn.dataset.bound = "1";
-      nextBtn.addEventListener("click", () => widget?.next());
+      nextBtn.addEventListener("click", () => {
+        const now = Date.now();
+        if (now - lastNextAt < 500) return;
+        lastNextAt = now;
+        widget?.next();
+      });
     }
 
     // Bind volume slider
