@@ -147,9 +147,11 @@ const widgetSrc = `https://w.soundcloud.com/player/?url=${encodeURIComponent(pla
     play: () => void;
     pause: () => void;
     toggle: () => void;
+    skip: (index: number) => void;
     setVolume: (vol: number) => void;
     getVolume: (cb: (vol: number) => void) => void;
     getCurrentSound: (cb: (sound: any) => void) => void;
+    getSounds: (cb: (sounds: any[]) => void) => void;
   };
 
   let widget: SCWidget | null = null;
@@ -193,11 +195,19 @@ const widgetSrc = `https://w.soundcloud.com/player/?url=${encodeURIComponent(pla
       const toggle = document.querySelector<HTMLButtonElement>("[data-sc-toggle]");
       if (toggle) toggle.disabled = false;
 
-      // Lê título inicial
-      widget!.getCurrentSound((sound: any) => {
-        if (sound?.title) {
-          setLabel(`${sound.title.toLowerCase()} · pausado`);
+      // Sorteia uma track aleatória da playlist e pula pra ela.
+      // skip() muda a track mas mantém paused — usuário clica play depois.
+      widget!.getSounds((sounds: any[]) => {
+        if (sounds && sounds.length > 1) {
+          const randomIndex = Math.floor(Math.random() * sounds.length);
+          widget!.skip(randomIndex);
         }
+        // Atualiza label com título da track atual (após skip, se houver)
+        widget!.getCurrentSound((sound: any) => {
+          if (sound?.title) {
+            setLabel(`${sound.title.toLowerCase()} · pausado`);
+          }
+        });
       });
     });
 
