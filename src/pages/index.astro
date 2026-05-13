@@ -334,7 +334,7 @@ const base = import.meta.env.BASE_URL || "/";
     {/* ===== CONNECT ===== */}
     <section
       id="conectar"
-      class="relative scroll-mt-20 px-6 py-20 md:px-10 md:py-28"
+      class="relative scroll-mt-20 px-6 pt-32 pb-20 md:px-10 md:pt-44 md:pb-28"
       style="background: var(--bg-base);"
     >
       <div class="mx-auto max-w-6xl">
@@ -355,30 +355,30 @@ const base = import.meta.env.BASE_URL || "/";
           </p>
         </div>
 
-        <div class="mb-8">
+        <div class="mb-8 flex justify-center">
           <button
             type="button"
             data-copy-rail
             data-addr={SERVER_IP}
-            class="group flex w-full items-stretch overflow-hidden border backdrop-blur-sm hover:opacity-90"
+            class="group flex w-full max-w-md items-stretch overflow-hidden border backdrop-blur-sm hover:opacity-90"
             style="border-color: var(--border); background: var(--card-strong);"
           >
             <span
-              class="flex items-center justify-center px-4 mono text-[0.6rem] font-bold tracking-[0.2em] uppercase"
+              class="flex items-center justify-center px-3 mono text-[0.55rem] font-bold tracking-[0.2em] uppercase"
               style="background: var(--bg-alt); color: var(--accent);"
             >
               Java · Bedrock
             </span>
-            <span class="flex flex-1 items-center justify-between px-5 py-3 text-left">
-              <span class="mono text-base font-bold md:text-lg" style="color: var(--text);">
+            <span class="flex flex-1 items-center justify-between px-4 py-2 text-left">
+              <span class="mono text-sm font-bold" style="color: var(--text);">
                 {SERVER_IP}
               </span>
-              <span class="mono text-[0.65rem] tracking-[0.2em] uppercase" style="color: var(--text-muted);">
+              <span class="mono text-[0.6rem] tracking-[0.2em] uppercase" style="color: var(--text-muted);">
                 porta automática
               </span>
             </span>
             <span
-              class="flex items-center justify-center border-l px-4 mono text-[0.7rem] font-bold tracking-[0.2em] uppercase"
+              class="flex items-center justify-center border-l px-3 mono text-[0.65rem] font-bold tracking-[0.2em] uppercase"
               style="border-color: var(--border); color: var(--text-dim);"
               data-copy-rail-label
             >
