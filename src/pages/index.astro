@@ -15,11 +15,11 @@ import SoundCloudPlayer from "../components/SoundCloudPlayer.astro";
 // island-filter + island-opacity são vars do theme (dark = silhueta, light = vivo).
 // `as const` preserva os literal types do variant pra checagem em SpriteIsland.
 const islands = [
-  { variant: "classic-l", size: 200, style: "bottom: 2%; left: 0%;" },
-  { variant: "compact", size: 130, style: "bottom: 2%; right: 0%;" },
-  { variant: "sand", size: 90, style: "top: 56%; right: 1%;" },
-  { variant: "mini", size: 80, style: "top: 38%; left: 1%;" },
-  { variant: "mini", size: 70, style: "top: 82%; left: 50%;" },
+  { variant: "classic-l", size: 200, style: "bottom: 4%; left: 6%;" },
+  { variant: "compact", size: 130, style: "bottom: 4%; right: 8%;" },
+  { variant: "sand", size: 90, style: "top: 64%; right: 8%;" },
+  { variant: "mini", size: 80, style: "top: 40%; left: 8%;" },
+  { variant: "mini", size: 70, style: "top: 82%; left: 48%;" },
 ] as const;
 
 // Endereço único do servidor — interpolado nos rails e CTA.
@@ -95,12 +95,18 @@ const base = import.meta.env.BASE_URL || "/";
         <SunMoon size={90} />
       </div>
 
-      {/* planetas decorativos (mantém constante entre temas) */}
-      <div class="pointer-events-none absolute -z-10 hidden md:block" style="top: 22%; left: 6%;">
+      {/* planetas decorativos (mantém constante entre temas, mais centrais) */}
+      <div class="pointer-events-none absolute -z-10 hidden md:block" style="top: 5%; right: 5%;">
+        <Planet size={130} palette="saturn" ring glow="rgba(232, 185, 92, 0.35)" />
+      </div>
+      <div class="pointer-events-none absolute -z-10 hidden md:block" style="top: 22%; left: 8%;">
         <Planet size={90} palette="ice" glow="rgba(184, 216, 232, 0.25)" />
       </div>
-      <div class="pointer-events-none absolute -z-10 hidden md:block" style="top: 14%; left: 32%;">
+      <div class="pointer-events-none absolute -z-10 hidden md:block" style="top: 14%; left: 24%;">
         <Planet size={50} palette="mars" />
+      </div>
+      <div class="pointer-events-none absolute -z-10 hidden md:block" style="top: 50%; right: 16%;">
+        <Planet size={80} palette="void" glow="rgba(179, 128, 232, 0.4)" />
       </div>
 
       {/* ilhas pixel-art */}
