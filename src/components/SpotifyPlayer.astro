@@ -18,18 +18,20 @@ const embedSrc = `https://open.spotify.com/embed/playlist/${playlistId}?utm_sour
 >
   {/* Player iframe — só visível quando expandido */}
   <div
-    class="spotify-iframe-wrap overflow-hidden border shadow-2xl"
-    style="border-color: var(--border); background: var(--bg-deep);"
+    class="spotify-iframe-wrap overflow-hidden shadow-2xl"
+    data-testid="spotify-embed-wrap"
   >
     <iframe
+      data-testid="embed-iframe"
+      style="border-radius: 12px"
       src={embedSrc}
-      width="300"
-      height="80"
+      width="100%"
+      height="152"
       frameborder="0"
+      allowfullscreen
       allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
       loading="lazy"
       title="Player de música Spotify — trilha do servidor"
-      style="display: block; border-radius: 0;"
     ></iframe>
   </div>
 
@@ -74,9 +76,9 @@ const embedSrc = `https://open.spotify.com/embed/playlist/${playlistId}?utm_sour
     display: none;
   }
 
-  /* Estado expanded */
+  /* Estado expanded — largura ajustada pro player standard 152px de altura */
   [data-spotify-player][data-expanded="true"] .spotify-iframe-wrap {
-    width: 300px;
+    width: 320px;
     opacity: 1;
     transform: translateX(0);
     pointer-events: auto;
@@ -91,11 +93,16 @@ const embedSrc = `https://open.spotify.com/embed/playlist/${playlistId}?utm_sour
     display: inline-flex;
   }
 
-  /* Mobile — iframe um pouco menor */
+  /* Mobile — iframe adapta à largura disponível */
   @media (max-width: 480px) {
+    .spotify-player {
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 0.5rem;
+    }
     [data-spotify-player][data-expanded="true"] .spotify-iframe-wrap {
-      width: calc(100vw - 9rem);
-      max-width: 260px;
+      width: calc(100vw - 2rem);
+      max-width: 320px;
     }
   }
 
