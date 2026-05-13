@@ -37,8 +37,16 @@ const widgetParams = "auto_play=false&hide_related=true&show_comments=false&show
 >
   {/* Artwork da playlist é src default (carrega instant). SVG fica atrás
        como fallback caso o img falhe (onerror baixa opacity). Quando uma
-       track tem artwork própria, JS substitui o src. */}
-  <div class="relative h-6 w-6 shrink-0">
+       track tem artwork própria, JS substitui o src. Wrap em <a> pra a
+       artwork também levar pro link da track (igual o label faz). */}
+  <a
+    data-sc-artwork-link
+    href={playlistUrl}
+    target="_blank"
+    rel="noopener noreferrer"
+    aria-label="Abrir track no SoundCloud"
+    class="relative h-6 w-6 shrink-0 transition-opacity hover:opacity-70"
+  >
     <svg
       class="absolute inset-0 h-full w-full"
       viewBox="0 0 24 24"
@@ -65,7 +73,7 @@ const widgetParams = "auto_play=false&hide_related=true&show_comments=false&show
       style="background: var(--border);"
       onerror="this.style.opacity='0'"
     />
-  </div>
+  </a>
 
   {/* Label clicável — abre a track atual no SoundCloud em nova aba.
        Default href = playlist; JS atualiza pro permalink da track no READY. */}
@@ -266,8 +274,11 @@ const widgetParams = "auto_play=false&hide_related=true&show_comments=false&show
   }
 
   function setLink(url: string | null | undefined) {
-    const a = document.querySelector<HTMLAnchorElement>("[data-sc-label]");
-    if (a && url) a.href = url;
+    if (!url) return;
+    const labelAnchor = document.querySelector<HTMLAnchorElement>("[data-sc-label]");
+    const artworkAnchor = document.querySelector<HTMLAnchorElement>("[data-sc-artwork-link]");
+    if (labelAnchor) labelAnchor.href = url;
+    if (artworkAnchor) artworkAnchor.href = url;
   }
 
   // Decodifica entities HTML (ex: "&amp;" → "&"). SoundCloud às vezes
