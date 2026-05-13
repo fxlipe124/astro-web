@@ -257,6 +257,15 @@ const widgetParams = "auto_play=false&hide_related=true&show_comments=false&show
     if (a && url) a.href = url;
   }
 
+  // Decodifica entities HTML (ex: "&amp;" → "&"). SoundCloud às vezes
+  // retorna title com entities literais enquanto publisher_metadata.artist
+  // vem decodificado — sem isso, includes() falha e o label duplica.
+  function decodeEntities(s: string): string {
+    const ta = document.createElement("textarea");
+    ta.innerHTML = s;
+    return ta.value;
+  }
+
   // Monta o label "artista — título · status". publisher_metadata.artist
   // é o canonical (vem populado pra tracks oficiais — Alan Walker, Skrillex,
   // etc.). Quando o title já contém o artista (ex: "KDrew - Circles"),
@@ -266,12 +275,16 @@ const widgetParams = "auto_play=false&hide_related=true&show_comments=false&show
   function buildLabel(sound: any, status: "pausado" | "tocando"): string {
     const titleRaw = sound?.title?.toString().trim();
     if (!titleRaw) return `trilha sonora · ${status}`;
-    const title = titleRaw.toLowerCase();
+    const title = decodeEntities(titleRaw).toLowerCase();
     const artistRaw = sound?.publisher_metadata?.artist?.toString().trim();
     if (!artistRaw) return `${title} · ${status}`;
-    const artist = artistRaw.toLowerCase();
-    const stripThe = (s: string) => s.replace(/^the\s+/, "").trim();
-    if (title.includes(artist) || title.includes(stripThe(artist))) {
+    const artist = decodeEntities(artistRaw).toLowerCase();
+    // Normaliza só pra comparação (display preserva original): strip
+    // pontuação/espaços. Cobre 'jr gong' vs 'jr. gong', 'A.S.A.P.' vs 'asap'.
+    const normalize = (s: string) => s.replace(/[^\p{L}\p{N}]+/gu, "");
+    const stripThe = (s: string) => s.replace(/^the\s+/, "");
+    const normTitle = normalize(title);
+    if (normTitle.includes(normalize(artist)) || normTitle.includes(normalize(stripThe(artist)))) {
       return `${title} · ${status}`;
     }
     return `${artist} — ${title} · ${status}`;
