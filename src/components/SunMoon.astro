@@ -99,9 +99,6 @@ const sunCells = buildSphereCells({
     shape-rendering="crispEdges"
     style={`filter: drop-shadow(0 0 ${size * 0.18}px rgba(232, 185, 92, 0.55));`}
   >
-    {/* Glow ring sutil em volta do disco (paridade visual com sol) */}
-    <circle cx="50" cy="50" r="32" fill="#E8B95C" opacity="0.18" />
-
     {/* Corpo da lua — mesma escala/posição do sol */}
     {moonCells.map((c) => (
       <rect x={c.x} y={c.y} width={3.5} height={3.5} fill={c.color} />
@@ -133,9 +130,6 @@ const sunCells = buildSphereCells({
       <line x1="82" y1="18" x2="74" y2="26" />
       <line x1="18" y1="82" x2="26" y2="74" />
     </g>
-
-    {/* Glow ring atrás do disco */}
-    <circle cx="50" cy="50" r="32" fill="#FFE08A" opacity="0.5" />
 
     {/* Corpo do sol — mesma escala/posição da lua */}
     {sunCells.map((c) => (
