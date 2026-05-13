@@ -355,51 +355,13 @@ const base = import.meta.env.BASE_URL || "/";
           </p>
         </div>
 
-        <div class="mb-8 flex justify-center">
-          <button
-            type="button"
-            data-copy-rail
-            data-addr={SERVER_IP}
-            class="group flex w-full max-w-xs items-stretch overflow-hidden border backdrop-blur-sm hover:opacity-90"
-            style="border-color: var(--border); background: var(--card-strong);"
-          >
-            <span
-              class="flex items-center justify-center px-3 mono text-[0.55rem] font-bold tracking-[0.2em] uppercase"
-              style="background: var(--bg-alt); color: var(--accent);"
-            >
-              Java · Bedrock
-            </span>
-            <span class="flex flex-1 items-center justify-center px-4 py-2 text-left">
-              <span class="mono text-sm font-bold" style="color: var(--text);">
-                {SERVER_IP}
-              </span>
-            </span>
-            <span
-              class="flex items-center justify-center border-l px-3 mono text-[0.65rem] font-bold tracking-[0.2em] uppercase"
-              style="border-color: var(--border); color: var(--text-dim);"
-              data-copy-rail-label
-            >
-              copiar
-            </span>
-          </button>
-        </div>
-
-        <div class="grid gap-5 md:grid-cols-3">
+        <div class="mb-10 grid gap-5 md:grid-cols-3">
           {
             ports.map((p) => (
               <article
                 class="group relative flex flex-col gap-5 border p-6 backdrop-blur-sm"
                 style="border-color: var(--border); background: var(--card);"
               >
-                <header class="flex items-center justify-between">
-                  <span
-                    class="mono text-xs font-bold tracking-[0.25em] uppercase"
-                    style="color: var(--text-muted);"
-                  >
-                    passo 0{p.n}
-                  </span>
-                </header>
-
                 <div class="flex items-center gap-4">
                   <div class="shrink-0 transition-transform duration-500 group-hover:-translate-y-1 group-hover:rotate-3">
                     <Block palette={p.block} size={56} />
@@ -432,6 +394,35 @@ const base = import.meta.env.BASE_URL || "/";
               </article>
             ))
           }
+        </div>
+
+        <div class="flex justify-center">
+          <button
+            type="button"
+            data-copy-rail
+            data-addr={SERVER_IP}
+            class="group flex w-full max-w-xs items-stretch overflow-hidden border backdrop-blur-sm hover:opacity-90"
+            style="border-color: var(--border); background: var(--card-strong);"
+          >
+            <span
+              class="flex items-center justify-center px-3 mono text-[0.55rem] font-bold tracking-[0.2em] uppercase"
+              style="background: var(--bg-alt); color: var(--accent);"
+            >
+              Java · Bedrock
+            </span>
+            <span class="flex flex-1 items-center justify-center px-4 py-2 text-left">
+              <span class="mono text-sm font-bold" style="color: var(--text);">
+                {SERVER_IP}
+              </span>
+            </span>
+            <span
+              class="flex items-center justify-center border-l px-3 mono text-[0.65rem] font-bold tracking-[0.2em] uppercase"
+              style="border-color: var(--border); color: var(--text-dim);"
+              data-copy-rail-label
+            >
+              copiar
+            </span>
+          </button>
         </div>
       </div>
     </section>
