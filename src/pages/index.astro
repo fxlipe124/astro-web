@@ -96,13 +96,14 @@ const base = import.meta.env.BASE_URL || "/";
       </div>
 
       {/* planetas decorativos (mantém constante entre temas, mais centrais) */}
-      <div class="pointer-events-none absolute -z-10 hidden md:block" style="top: 5%; right: 5%;">
+      {/* Saturn no canto esquerdo superior — longe do sol/lua que estão à direita */}
+      <div class="pointer-events-none absolute -z-10 hidden md:block" style="top: 5%; left: 5%;">
         <Planet size={130} palette="saturn" ring glow="rgba(232, 185, 92, 0.35)" />
       </div>
-      <div class="pointer-events-none absolute -z-10 hidden md:block" style="top: 22%; left: 8%;">
+      <div class="pointer-events-none absolute -z-10 hidden md:block" style="top: 36%; left: 6%;">
         <Planet size={90} palette="ice" glow="rgba(184, 216, 232, 0.25)" />
       </div>
-      <div class="pointer-events-none absolute -z-10 hidden md:block" style="top: 14%; left: 24%;">
+      <div class="pointer-events-none absolute -z-10 hidden md:block" style="top: 28%; left: 30%;">
         <Planet size={50} palette="mars" />
       </div>
       <div class="pointer-events-none absolute -z-10 hidden md:block" style="top: 50%; right: 16%;">
