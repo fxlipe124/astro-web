@@ -328,6 +328,14 @@ const widgetParams = "auto_play=false&hide_related=true&show_comments=false&show
       // READY dispara antes do widget ter resolvido a track do start_track —
       // getCurrentSound retorna sound parcial/null no primeiro tick. Retry
       // até a track ter title+artwork (ou 5 tentativas, ~2.5s).
+      //
+      // Sobre auto-skip no play: se a track random do start_track for
+      // unplayable (DMCA / region / deletada), o SoundCloud auto-pula até
+      // achar uma tocável. Tentei pre-skip aqui via getCurrentSound +
+      // widget.next(), mas (a) getCurrentSound retorna null nas primeiras
+      // chamadas e o loop infinito quebra o load, (b) skipping ANTES do
+      // ready resolver completamente coloca o widget em estado inconsistente.
+      // Decisão: aceitar a quirk da plataforma — raro o suficiente.
       const tryFetchSound = (attempts: number) => {
         widget!.getCurrentSound((sound: any) => {
           if (sound?.title && sound?.artwork_url) {
@@ -345,15 +353,36 @@ const widgetParams = "auto_play=false&hide_related=true&show_comments=false&show
       tryFetchSound(5);
     });
 
-    // Atualiza label quando uma nova track carrega (ex: usuário deu next).
+    // Updates de label/artwork/link consolidados num único scheduler:
+    // - Mesma track (mudou só estado play/pause) → atualiza imediato
+    // - Track diferente (LOAD_PROGRESS / SoundCloud auto-skip) → debounce 1200ms
+    //
+    // Motivação: quando uma track é unplayable (DMCA / region-blocked / deletada),
+    // SoundCloud auto-pula até achar uma tocável. Sem debounce, UI flickera
+    // entre as 2-3 tracks intermediárias. Com debounce, usuário vê só a track
+    // final (a que vai realmente tocar).
     let lastTrackId: number | null = null;
+    let labelUpdateTimer: number | null = null;
+    function scheduleLabelUpdate(immediate: boolean) {
+      if (labelUpdateTimer !== null) window.clearTimeout(labelUpdateTimer);
+      const runUpdate = () => {
+        if (!widget) return;
+        widget.getCurrentSound((s: any) => {
+          if (!s?.id) return;
+          lastTrackId = s.id;
+          setLabel(buildLabel(s, isPaused ? "pausado" : "tocando"));
+          setArtwork(s.artwork_url);
+          setLink(s.permalink_url);
+        });
+      };
+      if (immediate) runUpdate();
+      else labelUpdateTimer = window.setTimeout(runUpdate, 1200);
+    }
+
     widget.bind(SC.Widget.Events.LOAD_PROGRESS, () => {
       widget!.getCurrentSound((sound: any) => {
         if (sound?.id && sound.id !== lastTrackId) {
-          lastTrackId = sound.id;
-          setLabel(buildLabel(sound, isPaused ? "pausado" : "tocando"));
-          setArtwork(sound.artwork_url);
-          setLink(sound.permalink_url);
+          scheduleLabelUpdate(false);
         }
       });
     });
@@ -362,9 +391,8 @@ const widgetParams = "auto_play=false&hide_related=true&show_comments=false&show
       isPaused = false;
       setIconPaused(false);
       widget!.getCurrentSound((sound: any) => {
-        setLabel(buildLabel(sound, "tocando"));
-        setArtwork(sound?.artwork_url);
-        setLink(sound?.permalink_url);
+        // Se a track mudou (auto-skip por unplayable), debounce. Senão, imediato.
+        scheduleLabelUpdate(sound?.id === lastTrackId);
       });
     });
 
@@ -372,9 +400,7 @@ const widgetParams = "auto_play=false&hide_related=true&show_comments=false&show
       isPaused = true;
       setIconPaused(true);
       widget!.getCurrentSound((sound: any) => {
-        setLabel(buildLabel(sound, "pausado"));
-        setArtwork(sound?.artwork_url);
-        setLink(sound?.permalink_url);
+        scheduleLabelUpdate(sound?.id === lastTrackId);
       });
     });
 
