@@ -9,7 +9,7 @@ import SunMoon from "../components/SunMoon.astro";
 import Features from "../components/Features.astro";
 import Shop from "../components/Shop.astro";
 import Faq from "../components/Faq.astro";
-import SpotifyPlayer from "../components/SpotifyPlayer.astro";
+import SoundCloudPlayer from "../components/SoundCloudPlayer.astro";
 
 // Ilhas pixel-art posicionadas em zonas livres (planetas + UI).
 // island-filter + island-opacity são vars do theme (dark = silhueta, light = vivo).
@@ -512,7 +512,7 @@ const base = import.meta.env.BASE_URL || "/";
     <div class="grain-overlay fixed inset-0"></div>
 
     {/* Spotify floating player */}
-    <SpotifyPlayer />
+    <SoundCloudPlayer />
   </div>
 
   <script>

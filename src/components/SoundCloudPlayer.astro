@@ -1,0 +1,268 @@
+---
+// Player minimalista próprio + iframe SoundCloud escondido controlado via
+// SoundCloud Widget API (developers.soundcloud.com/docs/api/html5-widget).
+//
+// UI: barra fina 40px no topo com label da track + slider de volume +
+// botão play/pause. Iframe SoundCloud fica fora de tela (w/h 0).
+// Volume default 30% setado no evento READY.
+
+interface Props {
+  playlistUrl?: string;
+  defaultVolume?: number;
+}
+
+const {
+  playlistUrl = "https://soundcloud.com/fxlipe12/sets/mine-vibes",
+  defaultVolume = 30,
+} = Astro.props;
+
+const widgetSrc = `https://w.soundcloud.com/player/?url=${encodeURIComponent(playlistUrl)}&auto_play=false&hide_related=true&show_comments=false&show_user=false&show_reposts=false&show_teaser=false&visual=false`;
+---
+
+<div
+  class="sc-bar fixed top-0 left-0 right-0 z-50 flex items-center gap-3 border-b px-4 backdrop-blur-md"
+  style="height: 40px; background: color-mix(in srgb, var(--bg-base) 80%, transparent); border-color: var(--border);"
+  aria-label="Trilha sonora do servidor"
+>
+  {/* Wave/audio icon (genérico, theme-aware) */}
+  <svg class="h-3.5 w-3.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true" style="color: var(--accent);">
+    <path d="M3 12 L3 12" />
+    <path d="M6 8 L6 16" />
+    <path d="M9 5 L9 19" />
+    <path d="M12 9 L12 15" />
+    <path d="M15 6 L15 18" />
+    <path d="M18 10 L18 14" />
+    <path d="M21 12 L21 12" />
+  </svg>
+
+  {/* Label */}
+  <span
+    class="mono shrink-0 truncate text-[0.65rem] font-medium tracking-[0.15em] uppercase"
+    style="color: var(--text-dim); max-width: 40vw;"
+    data-sc-label
+  >
+    mine vibes · pausado
+  </span>
+
+  {/* Spacer */}
+  <div class="flex-1"></div>
+
+  {/* Volume control (collapsed em mobile) */}
+  <div class="hidden items-center gap-2 sm:flex">
+    <svg class="h-3 w-3 shrink-0" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true" style="color: var(--text-muted);">
+      <path d="M7 3 L4 6 L1 6 L1 10 L4 10 L7 13 Z" />
+      <path d="M10 6 Q12 8 10 10" stroke="currentColor" stroke-width="1" fill="none" stroke-linecap="round" />
+    </svg>
+    <input
+      type="range"
+      min="0"
+      max="100"
+      value={defaultVolume}
+      data-sc-volume
+      class="sc-volume-slider h-1 w-20 cursor-pointer"
+      aria-label="Volume da trilha sonora"
+    />
+  </div>
+
+  {/* Play/Pause toggle */}
+  <button
+    type="button"
+    data-sc-toggle
+    aria-label="Tocar trilha sonora"
+    class="inline-flex h-6 w-6 shrink-0 items-center justify-center transition-opacity hover:opacity-70 disabled:cursor-wait disabled:opacity-40"
+    style="color: var(--text);"
+    disabled
+  >
+    <svg class="icon-play h-3 w-3" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
+      <path d="M3 2 L13 8 L3 14 Z" />
+    </svg>
+    <svg class="icon-pause h-3 w-3" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true" style="display: none;">
+      <rect x="3" y="2" width="3.5" height="12" />
+      <rect x="9.5" y="2" width="3.5" height="12" />
+    </svg>
+  </button>
+
+  {/* Progress bar — linha fina embaixo */}
+  <div
+    class="pointer-events-none absolute bottom-0 left-0 right-0 h-px"
+    style="background: var(--border);"
+  >
+    <div
+      class="h-full transition-[width] duration-200 ease-linear"
+      style="background: var(--accent); width: 0%;"
+      data-sc-progress
+    ></div>
+  </div>
+
+  {/* iframe escondido — Widget API controla */}
+  <iframe
+    id="sc-widget"
+    src={widgetSrc}
+    width="0"
+    height="0"
+    frameborder="0"
+    allow="autoplay"
+    title="SoundCloud widget"
+    style="position: absolute; width: 0; height: 0; border: 0; pointer-events: none; clip: rect(0 0 0 0);"
+    data-default-volume={defaultVolume}
+  ></iframe>
+</div>
+
+<style>
+  /* Slider customizado pra combinar com o tema */
+  .sc-volume-slider {
+    -webkit-appearance: none;
+    appearance: none;
+    background: var(--border);
+    border-radius: 1px;
+    outline: none;
+  }
+  .sc-volume-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: var(--accent);
+    cursor: pointer;
+    border: 0;
+  }
+  .sc-volume-slider::-moz-range-thumb {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: var(--accent);
+    cursor: pointer;
+    border: 0;
+  }
+</style>
+
+<script is:inline src="https://w.soundcloud.com/player/api.js"></script>
+
+<script>
+  // SoundCloud Widget API
+  // Doc: developers.soundcloud.com/docs/api/html5-widget
+  type SCWidget = {
+    bind: (event: string, cb: (e?: any) => void) => void;
+    play: () => void;
+    pause: () => void;
+    toggle: () => void;
+    setVolume: (vol: number) => void;
+    getVolume: (cb: (vol: number) => void) => void;
+    getCurrentSound: (cb: (sound: any) => void) => void;
+  };
+
+  let widget: SCWidget | null = null;
+  let isPaused = true;
+
+  function setLabel(text: string) {
+    const el = document.querySelector<HTMLElement>("[data-sc-label]");
+    if (el) el.textContent = text;
+  }
+
+  function setIconPaused(paused: boolean) {
+    const toggle = document.querySelector<HTMLButtonElement>("[data-sc-toggle]");
+    const playIcon = document.querySelector<HTMLElement>("[data-sc-toggle] .icon-play");
+    const pauseIcon = document.querySelector<HTMLElement>("[data-sc-toggle] .icon-pause");
+    if (!toggle || !playIcon || !pauseIcon) return;
+    playIcon.style.display = paused ? "block" : "none";
+    pauseIcon.style.display = paused ? "none" : "block";
+    toggle.setAttribute("aria-label", paused ? "Tocar trilha sonora" : "Pausar trilha sonora");
+  }
+
+  function setProgress(pct: number) {
+    const bar = document.querySelector<HTMLElement>("[data-sc-progress]");
+    if (bar) bar.style.width = `${Math.min(100, Math.max(0, pct))}%`;
+  }
+
+  function setupWidget() {
+    const iframe = document.getElementById("sc-widget") as HTMLIFrameElement | null;
+    const SC = (window as any).SC;
+    if (!iframe || !SC?.Widget) return false;
+
+    widget = SC.Widget(iframe);
+    if (!widget) return false;
+
+    const defaultVolume = parseInt(iframe.dataset.defaultVolume ?? "30", 10);
+
+    widget.bind(SC.Widget.Events.READY, () => {
+      // Volume padrão 30%
+      widget!.setVolume(defaultVolume);
+
+      // Habilita botão
+      const toggle = document.querySelector<HTMLButtonElement>("[data-sc-toggle]");
+      if (toggle) toggle.disabled = false;
+
+      // Lê título inicial
+      widget!.getCurrentSound((sound: any) => {
+        if (sound?.title) {
+          setLabel(`${sound.title.toLowerCase()} · pausado`);
+        }
+      });
+    });
+
+    widget.bind(SC.Widget.Events.PLAY, () => {
+      isPaused = false;
+      setIconPaused(false);
+      widget!.getCurrentSound((sound: any) => {
+        const title = sound?.title?.toLowerCase() ?? "trilha sonora";
+        setLabel(`${title} · tocando`);
+      });
+    });
+
+    widget.bind(SC.Widget.Events.PAUSE, () => {
+      isPaused = true;
+      setIconPaused(true);
+      widget!.getCurrentSound((sound: any) => {
+        const title = sound?.title?.toLowerCase() ?? "trilha sonora";
+        setLabel(`${title} · pausado`);
+      });
+    });
+
+    widget.bind(SC.Widget.Events.PLAY_PROGRESS, (e: any) => {
+      if (typeof e?.relativePosition === "number") {
+        setProgress(e.relativePosition * 100);
+      }
+    });
+
+    widget.bind(SC.Widget.Events.FINISH, () => {
+      setProgress(0);
+    });
+
+    // Bind toggle button
+    const toggle = document.querySelector<HTMLButtonElement>("[data-sc-toggle]");
+    if (toggle && toggle.dataset.bound !== "1") {
+      toggle.dataset.bound = "1";
+      toggle.addEventListener("click", () => widget?.toggle());
+    }
+
+    // Bind volume slider
+    const slider = document.querySelector<HTMLInputElement>("[data-sc-volume]");
+    if (slider && slider.dataset.bound !== "1") {
+      slider.dataset.bound = "1";
+      slider.addEventListener("input", () => {
+        const vol = parseInt(slider.value, 10);
+        widget?.setVolume(vol);
+      });
+    }
+
+    return true;
+  }
+
+  // SoundCloud lib carrega async — pode estar pronto ou não no DOMContentLoaded
+  function tryInit() {
+    if (!setupWidget()) {
+      // Lib ainda não carregou; tenta de novo
+      setTimeout(tryInit, 200);
+    }
+  }
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", tryInit);
+  } else {
+    tryInit();
+  }
+
+  // SPA re-mount support
+  document.addEventListener("astro:page-load", tryInit);
+</script>
