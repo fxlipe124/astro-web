@@ -41,7 +41,7 @@ const widgetSrc = `https://w.soundcloud.com/player/?url=${encodeURIComponent(pla
     style="color: var(--text-dim); max-width: 40vw;"
     data-sc-label
   >
-    mine vibes · pausado
+    carregando…
   </span>
 
   {/* Spacer */}
@@ -191,23 +191,35 @@ const widgetSrc = `https://w.soundcloud.com/player/?url=${encodeURIComponent(pla
       // Volume padrão 30%
       widget!.setVolume(defaultVolume);
 
-      // Habilita botão
+      // Habilita botão imediatamente — usuário pode clicar enquanto
+      // o sorteio + carregamento da track rolam em paralelo.
       const toggle = document.querySelector<HTMLButtonElement>("[data-sc-toggle]");
       if (toggle) toggle.disabled = false;
 
-      // Sorteia uma track aleatória da playlist e pula pra ela.
-      // skip() muda a track mas mantém paused — usuário clica play depois.
+      // Mostra título da primeira track imediatamente pra UI sair de
+      // "carregando…" rápido, antes do sorteio/skip.
+      widget!.getCurrentSound((sound: any) => {
+        if (sound?.title) {
+          setLabel(`${sound.title.toLowerCase()} · pausado`);
+        }
+      });
+
+      // Em paralelo: sorteia uma track aleatória e pula pra ela. skip()
+      // muda a track mas mantém paused. Quando ela carregar, o evento
+      // PLAY (ou getCurrentSound em onSkip) atualiza o label.
       widget!.getSounds((sounds: any[]) => {
         if (sounds && sounds.length > 1) {
           const randomIndex = Math.floor(Math.random() * sounds.length);
           widget!.skip(randomIndex);
+          // Pega o novo título depois do skip
+          setTimeout(() => {
+            widget!.getCurrentSound((sound: any) => {
+              if (sound?.title) {
+                setLabel(`${sound.title.toLowerCase()} · pausado`);
+              }
+            });
+          }, 150);
         }
-        // Atualiza label com título da track atual (após skip, se houver)
-        widget!.getCurrentSound((sound: any) => {
-          if (sound?.title) {
-            setLabel(`${sound.title.toLowerCase()} · pausado`);
-          }
-        });
       });
     });
 

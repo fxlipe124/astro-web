@@ -31,6 +31,17 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, "");
     <meta property="og:description" content={description} />
     <meta property="og:type" content="website" />
     <link rel="icon" type="image/svg+xml" href={`${base}/favicon.svg`} />
+
+    {/* Preconnect a hosts SoundCloud — economiza DNS+TLS handshake. O
+        widget consome múltiplos subdomínios; pré-aquecer reduz LCP do
+        player de 2-5s pra ~1s. */}
+    <link rel="preconnect" href="https://w.soundcloud.com" crossorigin />
+    <link rel="preconnect" href="https://api-widget.soundcloud.com" crossorigin />
+    <link rel="preconnect" href="https://api.soundcloud.com" crossorigin />
+    <link rel="dns-prefetch" href="https://i1.sndcdn.com" />
+    {/* Preload do script da iFrame Widget API — começa o download antes do parser chegar nele */}
+    <link rel="preload" href="https://w.soundcloud.com/player/api.js" as="script" crossorigin />
+
     <title>{title}</title>
 
     {/* FOUC prevention — aplica data-theme antes do primeiro paint
