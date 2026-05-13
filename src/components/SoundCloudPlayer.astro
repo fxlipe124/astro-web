@@ -118,6 +118,21 @@ const widgetParams = "auto_play=false&hide_related=true&show_comments=false&show
     </svg>
   </button>
 
+  {/* Skip — próxima track */}
+  <button
+    type="button"
+    data-sc-next
+    aria-label="Próxima track"
+    class="inline-flex h-6 w-6 shrink-0 items-center justify-center transition-opacity hover:opacity-70 disabled:cursor-wait disabled:opacity-40"
+    style="color: var(--text);"
+    disabled
+  >
+    <svg class="h-3 w-3" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
+      <path d="M3 2 L11 8 L3 14 Z" />
+      <rect x="12" y="2" width="2" height="12" />
+    </svg>
+  </button>
+
   {/* Progress bar — linha fina embaixo */}
   <div
     class="pointer-events-none absolute bottom-0 left-0 right-0 h-px"
@@ -207,6 +222,8 @@ const widgetParams = "auto_play=false&hide_related=true&show_comments=false&show
     play: () => void;
     pause: () => void;
     toggle: () => void;
+    next: () => void;
+    prev: () => void;
     skip: (index: number) => void;
     setVolume: (vol: number) => void;
     getVolume: (cb: (vol: number) => void) => void;
@@ -265,9 +282,11 @@ const widgetParams = "auto_play=false&hide_related=true&show_comments=false&show
       // Volume padrão 30%
       widget!.setVolume(defaultVolume);
 
-      // Habilita botão imediatamente
+      // Habilita botões imediatamente
       const toggle = document.querySelector<HTMLButtonElement>("[data-sc-toggle]");
       if (toggle) toggle.disabled = false;
+      const next = document.querySelector<HTMLButtonElement>("[data-sc-next]");
+      if (next) next.disabled = false;
 
       // READY dispara antes do widget ter resolvido a track do start_track —
       // getCurrentSound retorna sound parcial/null no primeiro tick. Retry
@@ -340,6 +359,13 @@ const widgetParams = "auto_play=false&hide_related=true&show_comments=false&show
     if (toggle && toggle.dataset.bound !== "1") {
       toggle.dataset.bound = "1";
       toggle.addEventListener("click", () => widget?.toggle());
+    }
+
+    // Bind next button
+    const nextBtn = document.querySelector<HTMLButtonElement>("[data-sc-next]");
+    if (nextBtn && nextBtn.dataset.bound !== "1") {
+      nextBtn.dataset.bound = "1";
+      nextBtn.addEventListener("click", () => widget?.next());
     }
 
     // Bind volume slider
