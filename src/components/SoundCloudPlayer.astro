@@ -8,12 +8,18 @@
 
 interface Props {
   playlistUrl?: string;
+  playlistArtworkUrl?: string;
   defaultVolume?: number;
   trackCount?: number;
 }
 
 const {
   playlistUrl = "https://soundcloud.com/fxlipe12/sets/mine-vibes",
+  // Artwork da playlist no CDN do SoundCloud (variante t67x67 = crisp
+  // em retina pro display de 24px). Obtida via oEmbed:
+  //   https://soundcloud.com/oembed?url=<playlistUrl>&format=json
+  // Atualizar manualmente se a capa mudar.
+  playlistArtworkUrl = "https://i1.sndcdn.com/artworks-Zr9rBgynWyzDvlFp-dIkwqA-t67x67.jpg",
   defaultVolume = 30,
   // Aproximado — só pro Math.random() escolher um start_track. Se a
   // playlist crescer, atualizar aqui. SoundCloud trata índices fora
@@ -29,11 +35,11 @@ const widgetParams = "auto_play=false&hide_related=true&show_comments=false&show
   style="height: 40px; background: color-mix(in srgb, var(--bg-base) 80%, transparent); border-color: var(--border);"
   aria-label="Trilha sonora do servidor"
 >
-  {/* Ícone visual: SVG de áudio visível por default, substituído pela
-       artwork da track quando o widget responde (e o img carrega ok). */}
+  {/* Artwork da playlist é src default (carrega instant). SVG fica atrás
+       como fallback caso o img falhe (onerror baixa opacity). Quando uma
+       track tem artwork própria, JS substitui o src. */}
   <div class="relative h-6 w-6 shrink-0">
     <svg
-      data-sc-icon-fallback
       class="absolute inset-0 h-full w-full"
       viewBox="0 0 24 24"
       fill="none"
@@ -52,10 +58,12 @@ const widgetParams = "auto_play=false&hide_related=true&show_comments=false&show
     <img
       data-sc-artwork
       alt=""
+      src={playlistArtworkUrl}
       width="24"
       height="24"
-      class="absolute inset-0 h-full w-full rounded-sm object-cover opacity-0"
+      class="absolute inset-0 h-full w-full rounded-sm object-cover"
       style="background: var(--border);"
+      onerror="this.style.opacity='0'"
     />
   </div>
 
@@ -216,20 +224,11 @@ const widgetParams = "auto_play=false&hide_related=true&show_comments=false&show
 
   function setArtwork(url: string | null | undefined) {
     const img = document.querySelector<HTMLImageElement>("[data-sc-artwork]");
-    const fallback = document.querySelector<HTMLElement>("[data-sc-icon-fallback]");
     if (!img || !url) return;
-    // SoundCloud artwork: prefer 67x67 (crisp @2x em 24px display). Se a
-    // URL não casar com -large, usa como está.
-    const sized = url.replace(/-large\.(jpg|png)/, "-t67x67.$1");
-    img.onload = () => {
-      img.style.opacity = "1";
-      if (fallback) fallback.style.display = "none";
-    };
-    img.onerror = () => {
-      img.style.opacity = "0";
-      if (fallback) fallback.style.display = "";
-    };
-    img.src = sized;
+    // SoundCloud serve artwork em vários tamanhos: -large, -t500x500,
+    // -t300x300, -t67x67, etc. Sempre pedimos t67x67 (crisp em 24px @2x).
+    const sized = url.replace(/-(large|t\d+x\d+)\.(jpg|png)/, "-t67x67.$2");
+    if (img.src !== sized) img.src = sized;
   }
 
   function setLink(url: string | null | undefined) {
@@ -300,6 +299,8 @@ const widgetParams = "auto_play=false&hide_related=true&show_comments=false&show
       widget!.getCurrentSound((sound: any) => {
         const title = sound?.title?.toLowerCase() ?? "trilha sonora";
         setLabel(`${title} · tocando`);
+        setArtwork(sound?.artwork_url);
+        setLink(sound?.permalink_url);
       });
     });
 
@@ -309,6 +310,8 @@ const widgetParams = "auto_play=false&hide_related=true&show_comments=false&show
       widget!.getCurrentSound((sound: any) => {
         const title = sound?.title?.toLowerCase() ?? "trilha sonora";
         setLabel(`${title} · pausado`);
+        setArtwork(sound?.artwork_url);
+        setLink(sound?.permalink_url);
       });
     });
 
