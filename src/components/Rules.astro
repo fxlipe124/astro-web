@@ -1,0 +1,93 @@
+---
+// Regras públicas do servidor. EDITAR conforme a política real de moderação —
+// o que tá aqui é um esqueleto comum (cheats, comportamento, economia,
+// conta). Texto deve ser curto e categórico, sem "preâmbulos legais".
+
+const rules = [
+  {
+    category: "Cheat e bugs",
+    items: [
+      "Sem clients modificados, hacks ou x-ray.",
+      "Bugs exploráveis devem ser reportados, não usados. Quem reporta primeiro ganha crédito.",
+    ],
+  },
+  {
+    category: "Comportamento",
+    items: [
+      "Respeito acima de tudo — sem racismo, xenofobia, homofobia ou ataques pessoais.",
+      "Sem spam, flood no chat ou divulgação de outros servidores.",
+    ],
+  },
+  {
+    category: "Ilhas e economia",
+    items: [
+      "Grief em ilhas alheias é ban. Compartilhe com /is invite se quer cooperar.",
+      "Trades fora do sistema oficial (/trade) ficam por sua conta — staff não cobre golpes.",
+    ],
+  },
+  {
+    category: "Conta",
+    items: [
+      "Uma conta por pessoa. Sem ban evasion via alt.",
+      "Senha é responsabilidade sua. Staff nunca vai pedir.",
+    ],
+  },
+];
+---
+
+<section
+  id="regras"
+  class="relative scroll-mt-20 px-6 py-20 md:px-10 md:py-28"
+  style="background: var(--bg-base);"
+>
+  <div class="mx-auto max-w-6xl">
+    <div class="mb-10 flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
+      <div>
+        <div
+          class="mono text-xs font-semibold tracking-[0.25em] uppercase"
+          style="color: var(--accent);"
+        >
+          ▸ regras
+        </div>
+        <h2
+          class="display mt-3 text-4xl font-extrabold md:text-5xl"
+          style="color: var(--text);"
+        >
+          Combinado é combinado.
+        </h2>
+      </div>
+      <p class="mono max-w-md text-sm" style="color: var(--text-dim);">
+        Curtas, diretas. Quem entra, joga sabendo.
+      </p>
+    </div>
+
+    <div class="grid gap-px md:grid-cols-2" style="background: var(--border);">
+      {
+        rules.map((cat) => (
+          <article
+            class="flex flex-col gap-4 p-7"
+            style="background: var(--bg-base);"
+          >
+            <h3
+              class="mono text-[0.7rem] font-bold tracking-[0.25em] uppercase"
+              style="color: var(--accent);"
+            >
+              {cat.category}
+            </h3>
+            <ul class="flex flex-col gap-3 text-sm leading-relaxed" style="color: var(--text-dim);">
+              {cat.items.map((item) => (
+                <li class="flex items-start gap-3">
+                  <span
+                    class="mt-2 inline-block h-1 w-1 shrink-0"
+                    style="background: var(--accent);"
+                  />
+                  <span>{item}</span>
+                </li>
+              ))}
+            </ul>
+          </article>
+        ))
+      }
+    </div>
+  </div>
+</section>

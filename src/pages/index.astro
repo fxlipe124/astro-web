@@ -8,6 +8,8 @@ import SunMoon from "../components/SunMoon.astro";
 import Features from "../components/Features.astro";
 import Shop from "../components/Shop.astro";
 import Faq from "../components/Faq.astro";
+import Rules from "../components/Rules.astro";
+import Updates from "../components/Updates.astro";
 import SoundCloudPlayer from "../components/SoundCloudPlayer.astro";
 
 // Ilhas pixel-art posicionadas em zonas livres (planetas + UI).
@@ -144,8 +146,10 @@ const base = import.meta.env.BASE_URL || "/";
           >
             <a href="#conectar" class="hover:opacity-100" style="opacity: 0.85;">Conectar</a>
             <a href="#sistema" class="hover:opacity-100" style="opacity: 0.85;">Sistema</a>
+            <a href="#updates" class="hover:opacity-100" style="opacity: 0.85;">Updates</a>
             <a href="#loja" class="hover:opacity-100" style="opacity: 0.85;">Loja</a>
             <a href="#faq" class="hover:opacity-100" style="opacity: 0.85;">FAQ</a>
+            <a href="#regras" class="hover:opacity-100" style="opacity: 0.85;">Regras</a>
           </nav>
 
           {/* THEME TOGGLE */}
@@ -406,11 +410,17 @@ const base = import.meta.env.BASE_URL || "/";
     {/* ===== SISTEMA ===== */}
     <Features />
 
+    {/* ===== UPDATES ===== */}
+    <Updates />
+
     {/* ===== LOJA ===== */}
     <Shop />
 
     {/* ===== FAQ ===== */}
     <Faq />
+
+    {/* ===== REGRAS ===== */}
+    <Rules />
 
     {/* ===== FOOTER ===== */}
     <footer
