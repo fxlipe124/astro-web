@@ -12,13 +12,18 @@ import Faq from "../components/Faq.astro";
 
 // Ilhas pixel-art posicionadas em zonas livres (planetas + UI).
 // island-filter + island-opacity são vars do theme (dark = silhueta, light = vivo).
+// `as const` preserva os literal types do variant pra checagem em SpriteIsland.
 const islands = [
   { variant: "classic-l", size: 200, style: "bottom: 2%; left: 0%;" },
   { variant: "compact", size: 130, style: "bottom: 2%; right: 0%;" },
   { variant: "sand", size: 90, style: "top: 56%; right: 1%;" },
   { variant: "mini", size: 80, style: "top: 38%; left: 1%;" },
   { variant: "mini", size: 70, style: "top: 82%; left: 50%;" },
-];
+] as const;
+
+// Endereço único do servidor — interpolado nos rails e CTA.
+const SERVER_IP = "play.astro.gg";
+const DISCORD_URL = "https://discord.gg/mqN6CvB8X";
 
 const ports = [
   {
@@ -105,7 +110,7 @@ const base = import.meta.env.BASE_URL || "/";
               class="absolute"
               style={`${isl.style} opacity: var(--island-opacity); filter: var(--island-filter);`}
             >
-              <SpriteIsland variant={isl.variant as any} size={isl.size} />
+              <SpriteIsland variant={isl.variant} size={isl.size} />
             </div>
           ))
         }
@@ -235,6 +240,7 @@ const base = import.meta.env.BASE_URL || "/";
         <button
           type="button"
           data-copy-hero
+          data-addr={SERVER_IP}
           class="group mx-auto mt-12 flex w-full max-w-md items-stretch overflow-hidden hover:scale-[1.02]"
           style="background: var(--btn-cta-bg); color: var(--btn-cta-text); box-shadow: var(--btn-cta-shadow);"
         >
@@ -260,7 +266,7 @@ const base = import.meta.env.BASE_URL || "/";
               clique para copiar
             </span>
             <span class="mono text-lg font-bold md:text-xl" data-copy-hero-text>
-              play.astro.gg
+              {SERVER_IP}
             </span>
           </span>
           <span class="flex items-center justify-center px-5">
@@ -345,7 +351,7 @@ const base = import.meta.env.BASE_URL || "/";
           <button
             type="button"
             data-copy-rail
-            data-addr="play.astro.gg"
+            data-addr={SERVER_IP}
             class="group flex items-stretch overflow-hidden border backdrop-blur-sm hover:opacity-90"
             style="border-color: var(--border); background: var(--card-strong);"
           >
@@ -357,7 +363,7 @@ const base = import.meta.env.BASE_URL || "/";
             </span>
             <span class="flex flex-1 items-center justify-between px-5 py-3 text-left">
               <span class="mono text-base font-bold md:text-lg" style="color: var(--text);">
-                play.astro.gg
+                {SERVER_IP}
               </span>
               <span class="mono text-[0.65rem] tracking-[0.2em] uppercase" style="color: var(--text-muted);">
                 porta 25565
@@ -375,7 +381,7 @@ const base = import.meta.env.BASE_URL || "/";
           <button
             type="button"
             data-copy-rail
-            data-addr="play.astro.gg"
+            data-addr={SERVER_IP}
             data-port="19132"
             class="group flex items-stretch overflow-hidden border backdrop-blur-sm hover:opacity-90"
             style="border-color: var(--border); background: var(--card-strong);"
@@ -388,7 +394,7 @@ const base = import.meta.env.BASE_URL || "/";
             </span>
             <span class="flex flex-1 items-center justify-between px-5 py-3 text-left">
               <span class="mono text-base font-bold md:text-lg" style="color: var(--text);">
-                play.astro.gg
+                {SERVER_IP}
               </span>
               <span class="mono text-[0.65rem] tracking-[0.2em] uppercase" style="color: var(--text-muted);">
                 porta 19132
@@ -470,11 +476,28 @@ const base = import.meta.env.BASE_URL || "/";
       class="border-t px-6 py-10 md:px-10"
       style="border-color: var(--border); background: var(--bg-deep);"
     >
-      <div class="mx-auto flex max-w-7xl flex-col items-center justify-between gap-3 md:flex-row">
+      <div class="mx-auto flex max-w-7xl flex-col items-center justify-between gap-4 md:flex-row">
         <div class="display flex items-center gap-2 text-lg font-bold" style="color: var(--text);">
           <span class="inline-block h-2.5 w-2.5" style="background: var(--accent);"></span>
           <span>astro</span>
         </div>
+
+        <nav class="flex items-center gap-5" aria-label="Links sociais">
+          <a
+            href={DISCORD_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            class="mono inline-flex items-center gap-2 text-[0.7rem] font-bold tracking-[0.15em] uppercase hover:opacity-80"
+            style="color: var(--accent);"
+            aria-label="Entrar no Discord do servidor"
+          >
+            <svg class="h-4 w-4" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+              <path d="M19.27 5.33A19.5 19.5 0 0 0 14.5 4l-.21.42a17.85 17.85 0 0 0-4.58 0L9.5 4a19.5 19.5 0 0 0-4.77 1.33A20.2 20.2 0 0 0 1.5 18.5a19.7 19.7 0 0 0 5.96 3l.93-1.28a13.05 13.05 0 0 1-2.05-.99l.5-.39a14 14 0 0 0 11.32 0l.5.39a13.05 13.05 0 0 1-2.05.99l.93 1.28a19.7 19.7 0 0 0 5.96-3 20.2 20.2 0 0 0-3.23-13.17ZM8.52 15.33c-1.17 0-2.13-1.08-2.13-2.4 0-1.31.94-2.39 2.13-2.39 1.18 0 2.14 1.08 2.13 2.4 0 1.31-.95 2.39-2.13 2.39Zm6.96 0c-1.17 0-2.13-1.08-2.13-2.4 0-1.31.94-2.39 2.13-2.39 1.18 0 2.14 1.08 2.13 2.4 0 1.31-.94 2.39-2.13 2.39Z" />
+            </svg>
+            <span>discord</span>
+          </a>
+        </nav>
+
         <div
           class="mono text-[0.65rem] tracking-[0.2em] uppercase"
           style="color: var(--text-muted);"
@@ -511,13 +534,15 @@ const base = import.meta.env.BASE_URL || "/";
       });
 
       // ===== HERO IP COPY =====
+      // Endereço vem do data-addr (frontmatter SERVER_IP) — fonte única.
       document.querySelectorAll<HTMLButtonElement>("[data-copy-hero]").forEach((btn) => {
         if (btn.dataset.bound === "1") return;
         btn.dataset.bound = "1";
         btn.addEventListener("click", async () => {
           const label = btn.querySelector<HTMLElement>("[data-copy-hero-label]");
+          const addr = btn.dataset.addr ?? "";
           try {
-            await navigator.clipboard.writeText("play.astro.gg");
+            await navigator.clipboard.writeText(addr);
             if (label) {
               const prev = label.textContent;
               label.textContent = "copiado ✓";
@@ -535,7 +560,7 @@ const base = import.meta.env.BASE_URL || "/";
         btn.dataset.bound = "1";
         btn.addEventListener("click", async () => {
           const label = btn.querySelector<HTMLElement>("[data-copy-rail-label]");
-          const addr = btn.dataset.addr ?? "play.astro.gg";
+          const addr = btn.dataset.addr ?? "";
           const port = btn.dataset.port;
           const text = port ? `${addr}:${port}` : addr;
           try {
