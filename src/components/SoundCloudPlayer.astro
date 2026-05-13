@@ -253,6 +253,26 @@ const widgetParams = "auto_play=false&hide_related=true&show_comments=false&show
     if (a && url) a.href = url;
   }
 
+  // Monta o label "artista — título · status". publisher_metadata.artist
+  // é o canonical (vem populado pra tracks oficiais — Alan Walker, Skrillex,
+  // etc.). Quando o title já contém o artista (ex: "KDrew - Circles"),
+  // evita duplicar. user.username é evitado como fallback porque é
+  // tipicamente o label/uploader (Monstercat, Big Beat Records), não o
+  // artista real.
+  function buildLabel(sound: any, status: "pausado" | "tocando"): string {
+    const titleRaw = sound?.title?.toString().trim();
+    if (!titleRaw) return `trilha sonora · ${status}`;
+    const title = titleRaw.toLowerCase();
+    const artistRaw = sound?.publisher_metadata?.artist?.toString().trim();
+    if (!artistRaw) return `${title} · ${status}`;
+    const artist = artistRaw.toLowerCase();
+    const stripThe = (s: string) => s.replace(/^the\s+/, "").trim();
+    if (title.includes(artist) || title.includes(stripThe(artist))) {
+      return `${title} · ${status}`;
+    }
+    return `${artist} — ${title} · ${status}`;
+  }
+
   function setIconPaused(paused: boolean) {
     const toggle = document.querySelector<HTMLButtonElement>("[data-sc-toggle]");
     const playIcon = document.querySelector<HTMLElement>("[data-sc-toggle] .icon-play");
@@ -294,14 +314,13 @@ const widgetParams = "auto_play=false&hide_related=true&show_comments=false&show
       const tryFetchSound = (attempts: number) => {
         widget!.getCurrentSound((sound: any) => {
           if (sound?.title && sound?.artwork_url) {
-            setLabel(`${sound.title.toLowerCase()} · pausado`);
+            setLabel(buildLabel(sound, "pausado"));
             setArtwork(sound.artwork_url);
             setLink(sound.permalink_url);
           } else if (attempts > 0) {
             setTimeout(() => tryFetchSound(attempts - 1), 500);
           } else if (sound?.title) {
-            // Última tentativa — pelo menos o title veio
-            setLabel(`${sound.title.toLowerCase()} · pausado`);
+            setLabel(buildLabel(sound, "pausado"));
             setLink(sound.permalink_url);
           }
         });
@@ -315,7 +334,7 @@ const widgetParams = "auto_play=false&hide_related=true&show_comments=false&show
       widget!.getCurrentSound((sound: any) => {
         if (sound?.id && sound.id !== lastTrackId) {
           lastTrackId = sound.id;
-          setLabel(`${sound.title.toLowerCase()} · ${isPaused ? "pausado" : "tocando"}`);
+          setLabel(buildLabel(sound, isPaused ? "pausado" : "tocando"));
           setArtwork(sound.artwork_url);
           setLink(sound.permalink_url);
         }
@@ -326,8 +345,7 @@ const widgetParams = "auto_play=false&hide_related=true&show_comments=false&show
       isPaused = false;
       setIconPaused(false);
       widget!.getCurrentSound((sound: any) => {
-        const title = sound?.title?.toLowerCase() ?? "trilha sonora";
-        setLabel(`${title} · tocando`);
+        setLabel(buildLabel(sound, "tocando"));
         setArtwork(sound?.artwork_url);
         setLink(sound?.permalink_url);
       });
@@ -337,8 +355,7 @@ const widgetParams = "auto_play=false&hide_related=true&show_comments=false&show
       isPaused = true;
       setIconPaused(true);
       widget!.getCurrentSound((sound: any) => {
-        const title = sound?.title?.toLowerCase() ?? "trilha sonora";
-        setLabel(`${title} · pausado`);
+        setLabel(buildLabel(sound, "pausado"));
         setArtwork(sound?.artwork_url);
         setLink(sound?.permalink_url);
       });
