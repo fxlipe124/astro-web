@@ -104,7 +104,7 @@
     font-family: var(--font-sans);
     background: var(--bg-base);
     color: var(--text);
-    /* 40px = altura da Spotify bar minimalista fixa no topo. Empurra o
+    /* 40px = altura da barra fixa do SoundCloud player no topo. Empurra o
      * conteúdo pra baixo pra não ficar escondido atrás da bar. */
     padding-top: 40px;
     /* Escala global ~10% (equivalente a 'browser zoom 110%'). Escala texto,
