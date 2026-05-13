@@ -187,38 +187,53 @@ const widgetSrc = `https://w.soundcloud.com/player/?url=${encodeURIComponent(pla
 
     const defaultVolume = parseInt(iframe.dataset.defaultVolume ?? "30", 10);
 
-    widget.bind(SC.Widget.Events.READY, () => {
-      // Volume padrão 30%
-      widget!.setVolume(defaultVolume);
-
-      // Habilita botão imediatamente — usuário pode clicar enquanto
-      // o sorteio + carregamento da track rolam em paralelo.
-      const toggle = document.querySelector<HTMLButtonElement>("[data-sc-toggle]");
-      if (toggle) toggle.disabled = false;
-
-      // Mostra título da primeira track imediatamente pra UI sair de
-      // "carregando…" rápido, antes do sorteio/skip.
+    // Helper: atualiza label com título da track atual.
+    function refreshLabelFromCurrent(suffix: string = "pausado") {
       widget!.getCurrentSound((sound: any) => {
         if (sound?.title) {
-          setLabel(`${sound.title.toLowerCase()} · pausado`);
+          setLabel(`${sound.title.toLowerCase()} · ${suffix}`);
         }
       });
+    }
 
-      // Em paralelo: sorteia uma track aleatória e pula pra ela. skip()
-      // muda a track mas mantém paused. Quando ela carregar, o evento
-      // PLAY (ou getCurrentSound em onSkip) atualiza o label.
+    // SoundCloud lazy-carrega as tracks da playlist — getSounds pode
+    // retornar só 1 no READY. Faz retry com backoff até obter a lista
+    // completa, então sorteia.
+    function trySkipRandom(attempt = 0) {
       widget!.getSounds((sounds: any[]) => {
         if (sounds && sounds.length > 1) {
           const randomIndex = Math.floor(Math.random() * sounds.length);
           widget!.skip(randomIndex);
-          // Pega o novo título depois do skip
-          setTimeout(() => {
-            widget!.getCurrentSound((sound: any) => {
-              if (sound?.title) {
-                setLabel(`${sound.title.toLowerCase()} · pausado`);
-              }
-            });
-          }, 150);
+          // Espera o LOAD_PROGRESS da nova track atualizar o label.
+          // Fallback: força refresh do label depois de 600ms.
+          setTimeout(() => refreshLabelFromCurrent("pausado"), 600);
+        } else if (attempt < 8) {
+          setTimeout(() => trySkipRandom(attempt + 1), 400);
+        }
+      });
+    }
+
+    widget.bind(SC.Widget.Events.READY, () => {
+      // Volume padrão 30%
+      widget!.setVolume(defaultVolume);
+
+      // Habilita botão imediatamente
+      const toggle = document.querySelector<HTMLButtonElement>("[data-sc-toggle]");
+      if (toggle) toggle.disabled = false;
+
+      // Tenta sortear track aleatória (com retry se a playlist ainda
+      // não carregou completamente).
+      trySkipRandom();
+    });
+
+    // Throttle de refresh do label baseado em mudança de track ID.
+    // LOAD_PROGRESS dispara MUITAS vezes; checamos se a track mudou.
+    let lastTrackId: number | null = null;
+    widget.bind(SC.Widget.Events.LOAD_PROGRESS, () => {
+      widget!.getCurrentSound((sound: any) => {
+        if (sound?.id && sound.id !== lastTrackId) {
+          lastTrackId = sound.id;
+          setLabel(`${sound.title.toLowerCase()} · ${isPaused ? "pausado" : "tocando"}`);
         }
       });
     });
