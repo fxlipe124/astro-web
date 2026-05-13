@@ -107,6 +107,11 @@
     /* 40px = altura da Spotify bar minimalista fixa no topo. Empurra o
      * conteúdo pra baixo pra não ficar escondido atrás da bar. */
     padding-top: 40px;
+    /* Escala global ~10% (equivalente a 'browser zoom 110%'). Escala texto,
+     * spacing rem-based E elementos decorativos passados em px como prop
+     * (planetas, ilhas, sol/lua). Como a barra fixa do player também tá
+     * dentro do body, ela escala junto e continua alinhada com padding-top. */
+    zoom: 1.1;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     overflow-x: hidden;
