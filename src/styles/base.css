@@ -197,6 +197,15 @@
   transition: opacity 600ms ease;
 }
 
+/* Live status pill — visual states aplicados via JS inline. CSS aqui
+ * só cobre o estado inicial (checking) porque o cascade misturado com
+ * 'body *' transition + Tailwind v4 layers tava sobrescrevendo de forma
+ * imprevisível em data-status="offline". */
+[data-server-pill] {
+  border-color: var(--accent-soft);
+  background: var(--card-strong);
+}
+
 /* Toggle button — visible in nav */
 .theme-toggle .icon-sun,
 .theme-toggle .icon-moon {
