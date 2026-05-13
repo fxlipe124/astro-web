@@ -9,14 +9,19 @@
 interface Props {
   playlistUrl?: string;
   defaultVolume?: number;
+  trackCount?: number;
 }
 
 const {
   playlistUrl = "https://soundcloud.com/fxlipe12/sets/mine-vibes",
   defaultVolume = 30,
+  // Aproximado — só pro Math.random() escolher um start_track. Se a
+  // playlist crescer, atualizar aqui. SoundCloud trata índices fora
+  // do range como wrap/clamp.
+  trackCount = 120,
 } = Astro.props;
 
-const widgetSrc = `https://w.soundcloud.com/player/?url=${encodeURIComponent(playlistUrl)}&auto_play=false&hide_related=true&show_comments=false&show_user=false&show_reposts=false&show_teaser=false&visual=false`;
+const widgetParams = "auto_play=false&hide_related=true&show_comments=false&show_user=false&show_reposts=false&show_teaser=false&visual=false";
 ---
 
 <div
@@ -94,10 +99,10 @@ const widgetSrc = `https://w.soundcloud.com/player/?url=${encodeURIComponent(pla
     ></div>
   </div>
 
-  {/* iframe escondido — Widget API controla */}
+  {/* iframe escondido — Widget API controla. src é setada via JS abaixo
+       com start_track random pra carregar direto numa track aleatória. */}
   <iframe
     id="sc-widget"
-    src={widgetSrc}
     width="0"
     height="0"
     frameborder="0"
@@ -105,6 +110,9 @@ const widgetSrc = `https://w.soundcloud.com/player/?url=${encodeURIComponent(pla
     title="SoundCloud widget"
     style="position: absolute; width: 0; height: 0; border: 0; pointer-events: none; clip: rect(0 0 0 0);"
     data-default-volume={defaultVolume}
+    data-playlist-url={playlistUrl}
+    data-track-count={trackCount}
+    data-widget-params={widgetParams}
   ></iframe>
 </div>
 
@@ -136,6 +144,27 @@ const widgetSrc = `https://w.soundcloud.com/player/?url=${encodeURIComponent(pla
     border: 0;
   }
 </style>
+
+{/* Inline script: define iframe.src com start_track random IMEDIATAMENTE
+    (antes mesmo do script da Widget API carregar). O iframe começa o
+    fetch da track random direto — elimina round-trip de getSounds + skip. */}
+<script is:inline>
+  (function () {
+    var iframe = document.getElementById("sc-widget");
+    if (!iframe || iframe.src) return;
+    var url = iframe.dataset.playlistUrl;
+    var count = parseInt(iframe.dataset.trackCount || "1", 10);
+    var params = iframe.dataset.widgetParams || "";
+    var startTrack = Math.floor(Math.random() * count);
+    iframe.src =
+      "https://w.soundcloud.com/player/?url=" +
+      encodeURIComponent(url) +
+      "&" +
+      params +
+      "&start_track=" +
+      startTrack;
+  })();
+</script>
 
 <script is:inline src="https://w.soundcloud.com/player/api.js"></script>
 
@@ -187,32 +216,6 @@ const widgetSrc = `https://w.soundcloud.com/player/?url=${encodeURIComponent(pla
 
     const defaultVolume = parseInt(iframe.dataset.defaultVolume ?? "30", 10);
 
-    // Helper: atualiza label com título da track atual.
-    function refreshLabelFromCurrent(suffix: string = "pausado") {
-      widget!.getCurrentSound((sound: any) => {
-        if (sound?.title) {
-          setLabel(`${sound.title.toLowerCase()} · ${suffix}`);
-        }
-      });
-    }
-
-    // SoundCloud lazy-carrega as tracks da playlist — getSounds pode
-    // retornar só 1 no READY. Faz retry com backoff até obter a lista
-    // completa, então sorteia.
-    function trySkipRandom(attempt = 0) {
-      widget!.getSounds((sounds: any[]) => {
-        if (sounds && sounds.length > 1) {
-          const randomIndex = Math.floor(Math.random() * sounds.length);
-          widget!.skip(randomIndex);
-          // Espera o LOAD_PROGRESS da nova track atualizar o label.
-          // Fallback: força refresh do label depois de 600ms.
-          setTimeout(() => refreshLabelFromCurrent("pausado"), 600);
-        } else if (attempt < 8) {
-          setTimeout(() => trySkipRandom(attempt + 1), 400);
-        }
-      });
-    }
-
     widget.bind(SC.Widget.Events.READY, () => {
       // Volume padrão 30%
       widget!.setVolume(defaultVolume);
@@ -221,13 +224,16 @@ const widgetSrc = `https://w.soundcloud.com/player/?url=${encodeURIComponent(pla
       const toggle = document.querySelector<HTMLButtonElement>("[data-sc-toggle]");
       if (toggle) toggle.disabled = false;
 
-      // Tenta sortear track aleatória (com retry se a playlist ainda
-      // não carregou completamente).
-      trySkipRandom();
+      // Track random já foi escolhida via start_track na URL do iframe
+      // (inline script no SSR). Não precisa de getSounds/skip aqui.
+      widget!.getCurrentSound((sound: any) => {
+        if (sound?.title) {
+          setLabel(`${sound.title.toLowerCase()} · pausado`);
+        }
+      });
     });
 
-    // Throttle de refresh do label baseado em mudança de track ID.
-    // LOAD_PROGRESS dispara MUITAS vezes; checamos se a track mudou.
+    // Atualiza label quando uma nova track carrega (ex: usuário deu next).
     let lastTrackId: number | null = null;
     widget.bind(SC.Widget.Events.LOAD_PROGRESS, () => {
       widget!.getCurrentSound((sound: any) => {
