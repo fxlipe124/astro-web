@@ -269,15 +269,25 @@ const widgetParams = "auto_play=false&hide_related=true&show_comments=false&show
       const toggle = document.querySelector<HTMLButtonElement>("[data-sc-toggle]");
       if (toggle) toggle.disabled = false;
 
-      // Track random já foi escolhida via start_track na URL do iframe
-      // (inline script no SSR). Não precisa de getSounds/skip aqui.
-      widget!.getCurrentSound((sound: any) => {
-        if (sound?.title) {
-          setLabel(`${sound.title.toLowerCase()} · pausado`);
-        }
-        setArtwork(sound?.artwork_url);
-        setLink(sound?.permalink_url);
-      });
+      // READY dispara antes do widget ter resolvido a track do start_track —
+      // getCurrentSound retorna sound parcial/null no primeiro tick. Retry
+      // até a track ter title+artwork (ou 5 tentativas, ~2.5s).
+      const tryFetchSound = (attempts: number) => {
+        widget!.getCurrentSound((sound: any) => {
+          if (sound?.title && sound?.artwork_url) {
+            setLabel(`${sound.title.toLowerCase()} · pausado`);
+            setArtwork(sound.artwork_url);
+            setLink(sound.permalink_url);
+          } else if (attempts > 0) {
+            setTimeout(() => tryFetchSound(attempts - 1), 500);
+          } else if (sound?.title) {
+            // Última tentativa — pelo menos o title veio
+            setLabel(`${sound.title.toLowerCase()} · pausado`);
+            setLink(sound.permalink_url);
+          }
+        });
+      };
+      tryFetchSound(5);
     });
 
     // Atualiza label quando uma nova track carrega (ex: usuário deu next).
