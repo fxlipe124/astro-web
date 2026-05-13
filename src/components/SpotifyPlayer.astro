@@ -1,46 +1,176 @@
 ---
-// Barra fixa superior — Spotify embed compact (80px) ocupando largura total.
-// Minimalista, sempre visível. Volume não é controlável (limitação do embed
-// oficial — confirmado em https://developer.spotify.com/documentation/embeds).
+// Player minimalista próprio + iframe Spotify escondido controlado via
+// Spotify iFrame API (developer.spotify.com/documentation/embeds).
+//
+// O iframe oficial fica fora de tela (width/height 0); a UI da barra fina
+// no topo é nossa. Eventos do controller (`playback_update`) atualizam o
+// estado do botão play/pause + barra de progresso.
+//
+// Limite conhecido: a API NÃO expõe volume (config interna do Spotify).
 
 interface Props {
   playlistId?: string;
 }
 
 const { playlistId = "0BEJAMq4yvYzw4W6mK9zOH" } = Astro.props;
-const embedSrc = `https://open.spotify.com/embed/playlist/${playlistId}?utm_source=generator&theme=0`;
 ---
 
-<div class="spotify-bar" aria-label="Player de música do servidor">
-  <iframe
-    data-testid="embed-iframe"
-    src={embedSrc}
-    width="100%"
-    height="80"
-    frameborder="0"
-    allowfullscreen
-    allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
-    loading="lazy"
-    title="Player de música Spotify — trilha do servidor"
-    style="display: block; border: 0;"
-  ></iframe>
+<div
+  class="spotify-bar fixed top-0 left-0 right-0 z-50 flex items-center gap-3 border-b px-4 backdrop-blur-md"
+  style="height: 40px; background: color-mix(in srgb, var(--bg-base) 80%, transparent); border-color: var(--border);"
+  aria-label="Trilha sonora do servidor"
+>
+  {/* Spotify icon */}
+  <svg class="h-3.5 w-3.5 shrink-0" viewBox="0 0 24 24" fill="#1DB954" aria-hidden="true">
+    <path d="M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12C24 5.4 18.66 0 12 0Zm5.52 17.34c-.24.36-.66.48-1.02.24-2.82-1.74-6.36-2.1-10.56-1.14-.42.12-.78-.18-.9-.54-.12-.42.18-.78.54-.9 4.56-1.02 8.52-.6 11.64 1.32.42.18.48.66.3 1.02Zm1.44-3.3c-.3.42-.84.6-1.26.3-3.24-1.98-8.16-2.58-11.94-1.38-.48.12-1.02-.12-1.14-.6-.12-.48.12-1.02.6-1.14 4.38-1.32 9.78-.66 13.5 1.62.36.18.54.78.24 1.2Zm.12-3.36C15.24 8.4 8.82 8.16 5.16 9.3c-.6.18-1.2-.18-1.38-.72-.18-.6.18-1.2.72-1.38 4.26-1.26 11.28-1.02 15.72 1.62.54.3.72 1.02.42 1.56-.3.42-1.02.6-1.56.3Z" />
+  </svg>
+
+  {/* Label */}
+  <span
+    class="mono text-[0.65rem] font-medium tracking-[0.15em] uppercase"
+    style="color: var(--text-dim);"
+    data-spotify-label
+  >
+    trilha sonora · pausado
+  </span>
+
+  {/* Spacer */}
+  <div class="flex-1"></div>
+
+  {/* Play/Pause toggle */}
+  <button
+    type="button"
+    data-spotify-toggle
+    aria-label="Tocar trilha sonora"
+    class="inline-flex h-6 w-6 shrink-0 items-center justify-center transition-opacity hover:opacity-70 disabled:cursor-wait disabled:opacity-40"
+    style="color: var(--text);"
+    disabled
+  >
+    <svg class="icon-play h-3 w-3" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
+      <path d="M3 2 L13 8 L3 14 Z" />
+    </svg>
+    <svg class="icon-pause h-3 w-3" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true" style="display: none;">
+      <rect x="3" y="2" width="3.5" height="12" />
+      <rect x="9.5" y="2" width="3.5" height="12" />
+    </svg>
+  </button>
+
+  {/* Progress bar — linha fina embaixo da barra */}
+  <div
+    class="pointer-events-none absolute bottom-0 left-0 right-0 h-px"
+    style="background: var(--border);"
+  >
+    <div
+      class="h-full transition-[width] duration-200 ease-linear"
+      style="background: #1DB954; width: 0%;"
+      data-spotify-progress
+    ></div>
+  </div>
+
+  {/* iframe escondido — controlado via Spotify iFrame API */}
+  <div
+    aria-hidden="true"
+    style="position: absolute; width: 0; height: 0; overflow: hidden; pointer-events: none; clip: rect(0 0 0 0);"
+  >
+    <div id="spotify-embed-target" data-playlist-id={playlistId}></div>
+  </div>
 </div>
 
-<style>
-  .spotify-bar {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 80px;
-    z-index: 50;
-    box-shadow: 0 1px 0 0 var(--border), 0 4px 16px -4px rgba(0, 0, 0, 0.4);
+{/* Spotify iFrame API loader */}
+<script is:inline src="https://open.spotify.com/embed/iframe-api/v1" async></script>
+
+<script>
+  // Setup Spotify iFrame API. Doc:
+  // https://developer.spotify.com/documentation/embeds/references/iframe-api
+  type SpotifyController = {
+    play: () => void;
+    pause: () => void;
+    togglePlay: () => void;
+    addListener: (event: string, cb: (e: any) => void) => void;
+  };
+
+  let controller: SpotifyController | null = null;
+  let isPaused = true;
+
+  function setupUI() {
+    const toggle = document.querySelector<HTMLButtonElement>("[data-spotify-toggle]");
+    const label = document.querySelector<HTMLElement>("[data-spotify-label]");
+    const playIcon = document.querySelector<HTMLElement>("[data-spotify-toggle] .icon-play");
+    const pauseIcon = document.querySelector<HTMLElement>("[data-spotify-toggle] .icon-pause");
+    if (!toggle || !label || !playIcon || !pauseIcon) return;
+
+    toggle.addEventListener("click", () => {
+      if (!controller) return;
+      controller.togglePlay();
+    });
+
+    return { toggle, label, playIcon, pauseIcon };
   }
 
-  /* Hide on print */
-  @media print {
-    .spotify-bar {
-      display: none;
+  function updateUI(paused: boolean) {
+    const toggle = document.querySelector<HTMLButtonElement>("[data-spotify-toggle]");
+    const label = document.querySelector<HTMLElement>("[data-spotify-label]");
+    const playIcon = document.querySelector<HTMLElement>("[data-spotify-toggle] .icon-play");
+    const pauseIcon = document.querySelector<HTMLElement>("[data-spotify-toggle] .icon-pause");
+    if (!toggle || !label || !playIcon || !pauseIcon) return;
+
+    if (paused) {
+      playIcon.style.display = "block";
+      pauseIcon.style.display = "none";
+      label.textContent = "trilha sonora · pausado";
+      toggle.setAttribute("aria-label", "Tocar trilha sonora");
+    } else {
+      playIcon.style.display = "none";
+      pauseIcon.style.display = "block";
+      label.textContent = "trilha sonora · tocando";
+      toggle.setAttribute("aria-label", "Pausar trilha sonora");
     }
   }
-</style>
+
+  function updateProgress(positionMs: number, durationMs: number) {
+    const bar = document.querySelector<HTMLElement>("[data-spotify-progress]");
+    if (!bar || !durationMs) return;
+    const pct = Math.min(100, (positionMs / durationMs) * 100);
+    bar.style.width = `${pct}%`;
+  }
+
+  // Callback global chamado pela iFrame API quando o script carrega
+  (window as any).onSpotifyIframeApiReady = (IFrameAPI: any) => {
+    const element = document.getElementById("spotify-embed-target");
+    if (!element) return;
+    const playlistId = element.dataset.playlistId;
+    if (!playlistId) return;
+
+    const options = {
+      uri: `spotify:playlist:${playlistId}`,
+      width: "0",
+      height: "0",
+    };
+
+    IFrameAPI.createController(element, options, (ctrl: SpotifyController) => {
+      controller = ctrl;
+      setupUI();
+
+      // Habilita botão agora que o controller está pronto
+      const toggle = document.querySelector<HTMLButtonElement>("[data-spotify-toggle]");
+      if (toggle) toggle.disabled = false;
+
+      ctrl.addListener("playback_update", (e: any) => {
+        if (!e?.data) return;
+        const paused = e.data.isPaused;
+        if (paused !== isPaused) {
+          isPaused = paused;
+          updateUI(paused);
+        }
+        updateProgress(e.data.position ?? 0, e.data.duration ?? 0);
+      });
+    });
+  };
+
+  // Caso a API já tenha carregado em navegação SPA (astro:page-load)
+  document.addEventListener("astro:page-load", () => {
+    if ((window as any).SpotifyIframeApi) {
+      (window as any).onSpotifyIframeApiReady((window as any).SpotifyIframeApi);
+    }
+  });
+</script>
