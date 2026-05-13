@@ -29,15 +29,35 @@ const widgetParams = "auto_play=false&hide_related=true&show_comments=false&show
   style="height: 40px; background: color-mix(in srgb, var(--bg-base) 80%, transparent); border-color: var(--border);"
   aria-label="Trilha sonora do servidor"
 >
-  {/* Artwork da track atual — JS preenche src via getCurrentSound. */}
-  <img
-    data-sc-artwork
-    alt=""
-    width="24"
-    height="24"
-    class="h-6 w-6 shrink-0 rounded-sm object-cover"
-    style="background: var(--border);"
-  />
+  {/* Ícone visual: SVG de áudio visível por default, substituído pela
+       artwork da track quando o widget responde (e o img carrega ok). */}
+  <div class="relative h-6 w-6 shrink-0">
+    <svg
+      data-sc-icon-fallback
+      class="absolute inset-0 h-full w-full"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      stroke-width="2"
+      stroke-linecap="round"
+      aria-hidden="true"
+      style="color: var(--accent);"
+    >
+      <path d="M6 8 L6 16" />
+      <path d="M9 5 L9 19" />
+      <path d="M12 9 L12 15" />
+      <path d="M15 6 L15 18" />
+      <path d="M18 10 L18 14" />
+    </svg>
+    <img
+      data-sc-artwork
+      alt=""
+      width="24"
+      height="24"
+      class="absolute inset-0 h-full w-full rounded-sm object-cover opacity-0"
+      style="background: var(--border);"
+    />
+  </div>
 
   {/* Label clicável — abre a track atual no SoundCloud em nova aba.
        Default href = playlist; JS atualiza pro permalink da track no READY. */}
@@ -196,9 +216,20 @@ const widgetParams = "auto_play=false&hide_related=true&show_comments=false&show
 
   function setArtwork(url: string | null | undefined) {
     const img = document.querySelector<HTMLImageElement>("[data-sc-artwork]");
+    const fallback = document.querySelector<HTMLElement>("[data-sc-icon-fallback]");
     if (!img || !url) return;
-    // SoundCloud artwork: prefer 67x67 (crisp @2x em 24px display)
-    img.src = url.replace(/-large\.(jpg|png)/, "-t67x67.$1");
+    // SoundCloud artwork: prefer 67x67 (crisp @2x em 24px display). Se a
+    // URL não casar com -large, usa como está.
+    const sized = url.replace(/-large\.(jpg|png)/, "-t67x67.$1");
+    img.onload = () => {
+      img.style.opacity = "1";
+      if (fallback) fallback.style.display = "none";
+    };
+    img.onerror = () => {
+      img.style.opacity = "0";
+      if (fallback) fallback.style.display = "";
+    };
+    img.src = sized;
   }
 
   function setLink(url: string | null | undefined) {
