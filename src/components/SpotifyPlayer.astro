@@ -1,26 +1,25 @@
 ---
-// Floating Spotify player — collapsed = botão circular com logo, expanded =
-// iframe embed compact (80px). Estado persistido em localStorage.
-// Iframe carrega lazy pra não impactar TTFB.
+// Floating Spotify player — collapsed = botão retangular "▶ trilha sonora",
+// expanded = iframe embed compact 80px da playlist. Estado em localStorage.
+// Iframe loading lazy.
 
 interface Props {
   playlistId?: string;
 }
 
-const { playlistId = "2a7kqqxzhO5wqJww3smcXq" } = Astro.props;
+const { playlistId = "0BEJAMq4yvYzw4W6mK9zOH" } = Astro.props;
 const embedSrc = `https://open.spotify.com/embed/playlist/${playlistId}?utm_source=generator&theme=0`;
 ---
 
 <div
-  class="spotify-player fixed bottom-4 right-4 z-30 flex items-end"
+  class="spotify-player fixed bottom-4 right-4 z-30 flex items-end gap-2"
   data-spotify-player
   data-expanded="false"
 >
-  {/* Player iframe — só aparece quando expandido (display via CSS) */}
+  {/* Player iframe — só visível quando expandido */}
   <div
     class="spotify-iframe-wrap overflow-hidden border shadow-2xl"
     style="border-color: var(--border); background: var(--bg-deep);"
-    data-spotify-iframe
   >
     <iframe
       src={embedSrc}
@@ -34,29 +33,31 @@ const embedSrc = `https://open.spotify.com/embed/playlist/${playlistId}?utm_sour
     ></iframe>
   </div>
 
-  {/* Botão toggle — sempre visível */}
+  {/* Toggle button — retangular pill com texto */}
   <button
     type="button"
     data-spotify-toggle
-    aria-label="Abrir/fechar player de música"
+    aria-label="Abrir player de música do servidor"
     aria-expanded="false"
-    aria-controls="spotify-iframe"
-    class="spotify-toggle ml-2 inline-flex h-12 w-12 shrink-0 items-center justify-center rounded-full shadow-xl transition-transform hover:scale-110"
-    style="background: #1DB954; color: #FFFFFF;"
+    class="spotify-toggle inline-flex h-11 shrink-0 items-center gap-2 rounded-full px-4 font-bold uppercase tracking-wider shadow-xl transition-all hover:scale-[1.04]"
+    style="background: #1DB954; color: #FFFFFF; font-size: 0.7rem; letter-spacing: 0.12em;"
   >
-    {/* Spotify logo */}
-    <svg class="icon-play h-6 w-6" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+    {/* Spotify logo (collapsed) */}
+    <svg class="icon-spotify h-5 w-5" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
       <path d="M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12C24 5.4 18.66 0 12 0Zm5.52 17.34c-.24.36-.66.48-1.02.24-2.82-1.74-6.36-2.1-10.56-1.14-.42.12-.78-.18-.9-.54-.12-.42.18-.78.54-.9 4.56-1.02 8.52-.6 11.64 1.32.42.18.48.66.3 1.02Zm1.44-3.3c-.3.42-.84.6-1.26.3-3.24-1.98-8.16-2.58-11.94-1.38-.48.12-1.02-.12-1.14-.6-.12-.48.12-1.02.6-1.14 4.38-1.32 9.78-.66 13.5 1.62.36.18.54.78.24 1.2Zm.12-3.36C15.24 8.4 8.82 8.16 5.16 9.3c-.6.18-1.2-.18-1.38-.72-.18-.6.18-1.2.72-1.38 4.26-1.26 11.28-1.02 15.72 1.62.54.3.72 1.02.42 1.56-.3.42-1.02.6-1.56.3Z" />
     </svg>
-    <svg class="icon-close h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true">
+    {/* Close icon (expanded) */}
+    <svg class="icon-close h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" aria-hidden="true">
       <path d="M6 6 L18 18" />
       <path d="M18 6 L6 18" />
     </svg>
+    <span class="label-collapsed">trilha sonora</span>
+    <span class="label-expanded">fechar</span>
   </button>
 </div>
 
 <style>
-  /* Estado collapsed (default) — iframe escondido */
+  /* Estado collapsed — iframe escondido */
   .spotify-iframe-wrap {
     width: 0;
     opacity: 0;
@@ -67,8 +68,9 @@ const embedSrc = `https://open.spotify.com/embed/playlist/${playlistId}?utm_sour
       transform 350ms cubic-bezier(0.4, 0, 0.2, 1);
   }
 
-  /* icon-close escondido em collapsed */
-  .spotify-toggle .icon-close {
+  /* Botão: collapsed mostra Spotify icon + "trilha sonora" */
+  .spotify-toggle .icon-close,
+  .spotify-toggle .label-expanded {
     display: none;
   }
 
@@ -80,18 +82,20 @@ const embedSrc = `https://open.spotify.com/embed/playlist/${playlistId}?utm_sour
     pointer-events: auto;
   }
 
-  [data-spotify-player][data-expanded="true"] .spotify-toggle .icon-play {
+  [data-spotify-player][data-expanded="true"] .spotify-toggle .icon-spotify,
+  [data-spotify-player][data-expanded="true"] .spotify-toggle .label-collapsed {
     display: none;
   }
-  [data-spotify-player][data-expanded="true"] .spotify-toggle .icon-close {
-    display: block;
+  [data-spotify-player][data-expanded="true"] .spotify-toggle .icon-close,
+  [data-spotify-player][data-expanded="true"] .spotify-toggle .label-expanded {
+    display: inline-flex;
   }
 
   /* Mobile — iframe um pouco menor */
   @media (max-width: 480px) {
     [data-spotify-player][data-expanded="true"] .spotify-iframe-wrap {
-      width: calc(100vw - 5rem);
-      max-width: 280px;
+      width: calc(100vw - 9rem);
+      max-width: 260px;
     }
   }
 
@@ -118,6 +122,7 @@ const embedSrc = `https://open.spotify.com/embed/playlist/${playlistId}?utm_sour
       if (saved === "true") {
         root.setAttribute("data-expanded", "true");
         toggle.setAttribute("aria-expanded", "true");
+        toggle.setAttribute("aria-label", "Fechar player de música");
       }
     } catch (e) {
       // silent fail intentional — degrades to per-session state
@@ -128,6 +133,10 @@ const embedSrc = `https://open.spotify.com/embed/playlist/${playlistId}?utm_sour
       const next = !isExpanded;
       root.setAttribute("data-expanded", String(next));
       toggle.setAttribute("aria-expanded", String(next));
+      toggle.setAttribute(
+        "aria-label",
+        next ? "Fechar player de música" : "Abrir player de música do servidor"
+      );
       try {
         localStorage.setItem(STORAGE_KEY, String(next));
       } catch (e) {
