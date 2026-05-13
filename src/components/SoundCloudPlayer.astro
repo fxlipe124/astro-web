@@ -237,6 +237,19 @@ const widgetParams = "auto_play=false&hide_related=true&show_comments=false&show
   // Cobre double-click acidental + caso o handler tenha sido bound 2x
   // (ex: DOMContentLoaded + astro:page-load disparando tryInit).
   let lastNextAt = 0;
+  // Quanto auto-skip ainda podemos fazer pra fugir de tracks SNIP/BLOCK.
+  // Limite por sessão pra não entrar em loop se a playlist for ruim.
+  let autoSkipBudget = 10;
+
+  // Track é só preview / não-tocável? SoundCloud marca tracks que exigem
+  // SoundCloud Go+ como policy: "SNIP" (só 30s tocam). Também checamos
+  // BLOCK/streamable/playable só por garantia.
+  function shouldAutoSkip(sound: any): boolean {
+    if (!sound) return false;
+    if (sound.policy === "SNIP" || sound.policy === "BLOCK") return true;
+    if (sound.playable === false || sound.streamable === false) return true;
+    return false;
+  }
 
   function setLabel(text: string) {
     const el = document.querySelector<HTMLElement>("[data-sc-label]");
@@ -339,6 +352,13 @@ const widgetParams = "auto_play=false&hide_related=true&show_comments=false&show
       const tryFetchSound = (attempts: number) => {
         widget!.getCurrentSound((sound: any) => {
           if (sound?.title && sound?.artwork_url) {
+            // Track random pego pelo start_track caiu numa SNIP/BLOCK?
+            // Pula proativamente — LOAD_PROGRESS pega o próximo.
+            if (shouldAutoSkip(sound) && autoSkipBudget > 0) {
+              autoSkipBudget -= 1;
+              widget!.next();
+              return;
+            }
             setLabel(buildLabel(sound, "pausado"));
             setArtwork(sound.artwork_url);
             setLink(sound.permalink_url);
@@ -382,6 +402,17 @@ const widgetParams = "auto_play=false&hide_related=true&show_comments=false&show
     widget.bind(SC.Widget.Events.LOAD_PROGRESS, () => {
       widget!.getCurrentSound((sound: any) => {
         if (sound?.id && sound.id !== lastTrackId) {
+          // Auto-skip tracks só-preview (policy: SNIP — exigem SoundCloud
+          // Go+ pra tocar completo). Sem isso, a track toca 30s e o widget
+          // pára. Skip antes do label atualizar pra UI ir direto pra
+          // próxima tocável.
+          if (shouldAutoSkip(sound) && autoSkipBudget > 0) {
+            autoSkipBudget -= 1;
+            // Marca como visto pra não tentar de novo na próxima volta
+            lastTrackId = sound.id;
+            widget!.next();
+            return;
+          }
           scheduleLabelUpdate(false);
         }
       });
