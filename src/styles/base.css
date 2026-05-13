@@ -104,6 +104,9 @@
     font-family: var(--font-sans);
     background: var(--bg-base);
     color: var(--text);
+    /* 80px = altura da Spotify bar fixa no topo. Empurra o conteúdo pra baixo
+     * pra não ficar escondido atrás da bar. */
+    padding-top: 80px;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     overflow-x: hidden;
