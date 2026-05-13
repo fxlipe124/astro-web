@@ -29,25 +29,28 @@ const widgetParams = "auto_play=false&hide_related=true&show_comments=false&show
   style="height: 40px; background: color-mix(in srgb, var(--bg-base) 80%, transparent); border-color: var(--border);"
   aria-label="Trilha sonora do servidor"
 >
-  {/* Wave/audio icon (genérico, theme-aware) */}
-  <svg class="h-3.5 w-3.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true" style="color: var(--accent);">
-    <path d="M3 12 L3 12" />
-    <path d="M6 8 L6 16" />
-    <path d="M9 5 L9 19" />
-    <path d="M12 9 L12 15" />
-    <path d="M15 6 L15 18" />
-    <path d="M18 10 L18 14" />
-    <path d="M21 12 L21 12" />
-  </svg>
+  {/* Artwork da track atual — JS preenche src via getCurrentSound. */}
+  <img
+    data-sc-artwork
+    alt=""
+    width="24"
+    height="24"
+    class="h-6 w-6 shrink-0 rounded-sm object-cover"
+    style="background: var(--border);"
+  />
 
-  {/* Label */}
-  <span
-    class="mono shrink-0 truncate text-[0.65rem] font-medium tracking-[0.15em] uppercase"
+  {/* Label clicável — abre a track atual no SoundCloud em nova aba.
+       Default href = playlist; JS atualiza pro permalink da track no READY. */}
+  <a
+    href={playlistUrl}
+    target="_blank"
+    rel="noopener noreferrer"
+    class="mono shrink-0 truncate text-[0.65rem] font-medium tracking-[0.15em] uppercase transition-opacity hover:opacity-70"
     style="color: var(--text-dim); max-width: 40vw;"
     data-sc-label
   >
     mine vibes · pausado
-  </span>
+  </a>
 
   {/* Spacer */}
   <div class="flex-1"></div>
@@ -191,6 +194,18 @@ const widgetParams = "auto_play=false&hide_related=true&show_comments=false&show
     if (el) el.textContent = text;
   }
 
+  function setArtwork(url: string | null | undefined) {
+    const img = document.querySelector<HTMLImageElement>("[data-sc-artwork]");
+    if (!img || !url) return;
+    // SoundCloud artwork: prefer 67x67 (crisp @2x em 24px display)
+    img.src = url.replace(/-large\.(jpg|png)/, "-t67x67.$1");
+  }
+
+  function setLink(url: string | null | undefined) {
+    const a = document.querySelector<HTMLAnchorElement>("[data-sc-label]");
+    if (a && url) a.href = url;
+  }
+
   function setIconPaused(paused: boolean) {
     const toggle = document.querySelector<HTMLButtonElement>("[data-sc-toggle]");
     const playIcon = document.querySelector<HTMLElement>("[data-sc-toggle] .icon-play");
@@ -230,6 +245,8 @@ const widgetParams = "auto_play=false&hide_related=true&show_comments=false&show
         if (sound?.title) {
           setLabel(`${sound.title.toLowerCase()} · pausado`);
         }
+        setArtwork(sound?.artwork_url);
+        setLink(sound?.permalink_url);
       });
     });
 
@@ -240,6 +257,8 @@ const widgetParams = "auto_play=false&hide_related=true&show_comments=false&show
         if (sound?.id && sound.id !== lastTrackId) {
           lastTrackId = sound.id;
           setLabel(`${sound.title.toLowerCase()} · ${isPaused ? "pausado" : "tocando"}`);
+          setArtwork(sound.artwork_url);
+          setLink(sound.permalink_url);
         }
       });
     });
