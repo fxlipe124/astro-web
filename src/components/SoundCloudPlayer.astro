@@ -248,11 +248,6 @@ const widgetParams = "auto_play=false&hide_related=true&show_comments=false&show
   // Quanto auto-skip ainda podemos fazer pra fugir de tracks SNIP/BLOCK.
   // Limite por sessão pra não entrar em loop se a playlist for ruim.
   let autoSkipBudget = 30;
-  // Posição relativa atual da playback (0..1) — atualizada em PLAY_PROGRESS.
-  // Usada pra detectar cutoff: se PAUSE dispara não-iniciado-pelo-usuário
-  // com position < 0.95, a track foi cortada (SNIP que escapou da detecção).
-  let lastRelativePosition = 0;
-  let userClickedPause = false;
 
   // Track é só preview / não-tocável? SoundCloud marca tracks que exigem
   // SoundCloud Go+ como policy: "SNIP" / "MONETIZE" (só 30s tocam).
@@ -471,20 +466,6 @@ const widgetParams = "auto_play=false&hide_related=true&show_comments=false&show
     widget.bind(SC.Widget.Events.PAUSE, () => {
       isPaused = true;
       setIconPaused(true);
-
-      // Cutoff detection: se PAUSE veio sem o usuário ter clicado pause E
-      // a posição estava < 95%, a track foi cortada (SNIP que escapou da
-      // detecção via policy/duration, ou cutoff regional). Auto-skip pra
-      // próxima e dá play.
-      const wasUserPause = userClickedPause;
-      userClickedPause = false;
-      if (!wasUserPause && lastRelativePosition > 0 && lastRelativePosition < 0.95 && autoSkipBudget > 0) {
-        autoSkipBudget -= 1;
-        widget!.next();
-        setTimeout(() => widget?.play(), 500);
-        return;
-      }
-
       widget!.getCurrentSound((sound: any) => {
         scheduleLabelUpdate(sound?.id === lastTrackId);
       });
@@ -492,26 +473,19 @@ const widgetParams = "auto_play=false&hide_related=true&show_comments=false&show
 
     widget.bind(SC.Widget.Events.PLAY_PROGRESS, (e: any) => {
       if (typeof e?.relativePosition === "number") {
-        lastRelativePosition = e.relativePosition;
         setProgress(e.relativePosition * 100);
       }
     });
 
     widget.bind(SC.Widget.Events.FINISH, () => {
-      // Track terminou — reseta tracking de posição pra próxima.
-      lastRelativePosition = 0;
       setProgress(0);
     });
 
-    // Bind toggle button — marca userClickedPause quando user pausa,
-    // pra distinguir pause-do-usuário de cutoff-automático no PAUSE handler.
+    // Bind toggle button
     const toggle = document.querySelector<HTMLButtonElement>("[data-sc-toggle]");
     if (toggle && toggle.dataset.bound !== "1") {
       toggle.dataset.bound = "1";
-      toggle.addEventListener("click", () => {
-        if (!isPaused) userClickedPause = true;
-        widget?.toggle();
-      });
+      toggle.addEventListener("click", () => widget?.toggle());
     }
 
     // Bind next button (com debounce)
