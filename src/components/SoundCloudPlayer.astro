@@ -247,15 +247,23 @@ const widgetParams = "auto_play=false&hide_related=true&show_comments=false&show
   let lastNextAt = 0;
   // Quanto auto-skip ainda podemos fazer pra fugir de tracks SNIP/BLOCK.
   // Limite por sessão pra não entrar em loop se a playlist for ruim.
-  let autoSkipBudget = 10;
+  let autoSkipBudget = 30;
 
   // Track é só preview / não-tocável? SoundCloud marca tracks que exigem
-  // SoundCloud Go+ como policy: "SNIP" (só 30s tocam). Também checamos
-  // BLOCK/streamable/playable só por garantia.
+  // SoundCloud Go+ como policy: "SNIP" / "MONETIZE" (só 30s tocam).
+  // Belt-and-suspenders: se duration é claramente menor que full_duration,
+  // é snippet independente do campo policy.
   function shouldAutoSkip(sound: any): boolean {
     if (!sound) return false;
-    if (sound.policy === "SNIP" || sound.policy === "BLOCK") return true;
+    if (sound.policy === "SNIP" || sound.policy === "BLOCK" || sound.policy === "MONETIZE") return true;
     if (sound.playable === false || sound.streamable === false) return true;
+    if (typeof sound.duration === "number" && typeof sound.full_duration === "number") {
+      // Threshold de 90%: tracks legit às vezes têm pequena diferença
+      // (intro/outro), então não usamos igualdade exata. Importante:
+      // só checa se duration > 0 — duration 0 acontece DURANTE loading,
+      // não é sinal de snippet.
+      if (sound.duration > 0 && sound.full_duration > 0 && sound.duration < sound.full_duration * 0.9) return true;
+    }
     return false;
   }
 
@@ -443,7 +451,14 @@ const widgetParams = "auto_play=false&hide_related=true&show_comments=false&show
       isPaused = false;
       setIconPaused(false);
       widget!.getCurrentSound((sound: any) => {
-        // Se a track mudou (auto-skip por unplayable), debounce. Senão, imediato.
+        // Defesa em profundidade: se PLAY disparou numa track SNIP que escapou
+        // do LOAD_PROGRESS (timing), pula imediato. Usuário ouve um instante
+        // de áudio mas evita os 30s + parada.
+        if (shouldAutoSkip(sound) && autoSkipBudget > 0) {
+          autoSkipBudget -= 1;
+          widget!.next();
+          return;
+        }
         scheduleLabelUpdate(sound?.id === lastTrackId);
       });
     });
